@@ -46,7 +46,7 @@ public class SupportTicketService {
     // Freshdesk account auth key through which tickets will be created
 //    private String FRESHDESK_API_KEY = System.getenv("FRESHDESK_API_KEY");
 
-    private String REDMINE_AUTH_KEY = System.getenv("REDMINE_AUTH_KEY");
+    private String REDMINE_AUTH_KEY = "791b2fa55efdcfe355f1b9056dfdee8fdb2b125f"; // System.getenv("REDMINE_AUTH_KEY");
 
     private final String REQUEST_METHOD = "POST";
     private final String CONTENT_TYPE = "application/json";
