@@ -68,6 +68,30 @@ public class Transfer<S extends Resource, D extends Resource> {
         });
     }
 
+    private Flux<TransferInfo> startTransfer(Stat tapStat, long sliceSize) {
+        {
+            info.setTotal(tapStat.getSize());
+            return Flux.fromIterable(tapStat.getFilesList())
+                    .doOnSubscribe(s -> startTimer())
+                    .flatMap(fileStat -> {
+                        final Drain drain;
+                        if (destination instanceof BoxResource) {
+                            drain = ((BoxResource) destination).sink(fileStat, tapStat.isDir());
+                        } else if (tapStat.isDir())
+                            drain = destination.sink(fileStat);
+                        else {
+                            drain = destination.sink();
+                        }
+                        return source.tap().tap(fileStat, sliceSize)
+                                .subscribeOn(Schedulers.elastic())
+                                .doOnNext(drain::drain)
+                                .subscribeOn(Schedulers.elastic())
+                                .map(this::addProgress)
+                                .doOnComplete(drain::finish);
+                    }).doFinally(s -> done());
+        }
+    }
+
     public Flux<TransferInfo> start(Long sliceSize) {
         if (source instanceof GridftpResource && destination instanceof GridftpResource){
             return handleGridftpTransfers();
@@ -77,39 +101,14 @@ public class Transfer<S extends Resource, D extends Resource> {
         // HTTP is read only
         if(destination instanceof HttpResource)
             return Flux.error(new Exception("HTTP is read-only"));
-
-        Stat tapStat = (Stat)source.getTransferStat().block();
-        info.setTotal(tapStat.getSize());
-
-
-        return Flux.fromIterable(tapStat.getFilesList())
-                .doOnSubscribe(s -> startTimer())
-                .flatMap(fileStat -> {
-                    final Drain drain;
-                    if( destination instanceof BoxResource){
-                        drain =  ((BoxResource)destination).sink(fileStat, tapStat.isDir());
-                    }
-                    else if(tapStat.isDir())
-                        drain = destination.sink(fileStat);
-                    else {
-                        drain = destination.sink();
-                    }
-                    return source.tap().tap(fileStat, sliceSize)
-                            .subscribeOn(Schedulers.elastic())
-                            .doOnNext(drain::drain)
-                            .subscribeOn(Schedulers.elastic())
-                            .map(this::addProgress)
-                            .doOnComplete(drain::finish);
-                }).doFinally(s -> done());
+        return source.getTransferStat()
+                .flux()
+                .flatMap(stat -> this.startTransfer((Stat) stat, sliceSize));
     }
 
     public void initialize() {
         Stat stat = (Stat) source.stat().block();
         info.setTotal(stat.getSize());
-    }
-
-    public void initializeUpload(int fileSize){
-        info.setTotal(fileSize);
     }
 
     public void done() {
