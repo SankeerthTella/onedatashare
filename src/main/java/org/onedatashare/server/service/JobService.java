@@ -72,14 +72,8 @@ public class JobService {
         return jobRepository.findAllById(jobIds);
     }
 
-    public Mono<Job> findJobByJobId(Integer job_id) {
-        return getAllJobsForUser(null).map(jobs -> {
-            Job job = new Job(null, null);
-            for(Job j: jobs) {
-                if(j.getJob_id() == job_id) job = j;
-            }
-            return job;
-        });
+    public Mono<Job> findById(String uuid){
+        return jobRepository.findById(UUID.fromString(uuid));
     }
 
     public Mono<Job> saveJob(Job job) {

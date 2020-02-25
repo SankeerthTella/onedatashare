@@ -6,7 +6,6 @@ import org.onedatashare.server.model.credential.GlobusWebClientCredential;
 import org.onedatashare.server.model.credential.OAuthCredential;
 import org.onedatashare.server.model.credential.UploadCredential;
 import org.onedatashare.server.model.credential.UserInfoCredential;
-import org.onedatashare.server.model.request.JobRequestData;
 import org.onedatashare.server.model.request.TransferRequest;
 import org.onedatashare.server.model.useraction.IdMap;
 import org.onedatashare.server.model.useraction.UserActionResource;
@@ -172,9 +171,9 @@ public class TransferService {
                 .subscribeOn(Schedulers.elastic());
     }
 
-    public Mono<Job> restartJob(JobRequestData jobRequestData) {
+    public Mono<Job> restartJob(String uuid) {
         return userService.getLoggedInUser()
-                .flatMap(user -> jobService.findJobByJobId(jobRequestData.getJob_id())
+                .flatMap(user -> jobService.findById(uuid)
                         .flatMap(job -> {
                             Job restartedJob = new Job(job.getSrc(), job.getDest());
                             boolean credsExists = updateJobCredentials(user, job);
@@ -183,7 +182,6 @@ public class TransferService {
                             }
                             restartedJob.setStatus(JobStatus.scheduled);
                             restartedJob.setRestartedJob(true);
-                            restartedJob.setSourceJob(jobRequestData.getJob_id());
                             restartedJob = user.saveJob(restartedJob);
                             userService.saveUser(user).subscribe();
                             return Mono.just(restartedJob);
@@ -192,8 +190,8 @@ public class TransferService {
                         .doOnSuccess(restartedJob -> processTransferFromJob(restartedJob, new String())));
     }
 
-    public Mono<Job> deleteJob(JobRequestData jobRequestData) {
-        return jobService.findJobByJobId(jobRequestData.getJob_id())
+    public Mono<Job> deleteJob(String uuid) {
+        return jobService.findById(uuid)
                 .map(job -> job.setDeleted(true))
                 .flatMap(jobService::saveJob);
     }
@@ -204,12 +202,12 @@ public class TransferService {
      * which is in turn used to access the ongoing job flux from the ongoingJobs map.
      * This flux is then disposed and the job is evicted from the map to cancel the transfer.
      *
-     * @param jobRequestData
+     * @param uuid
      * @return Mono of job that was stopped
      */
-    public Mono<Job> cancel(JobRequestData jobRequestData) {
+    public Mono<Job> cancel(String uuid) {
         return userService.getLoggedInUser()
-                .flatMap((User user) -> jobService.findJobByJobId(jobRequestData.getJob_id())
+                .flatMap((User user) -> jobService.findById(uuid)
                         .map(job -> {
                             try {
                                 ongoingJobs.get(job.getUuid()).dispose();

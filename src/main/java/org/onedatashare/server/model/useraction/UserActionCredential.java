@@ -11,10 +11,11 @@ public class UserActionCredential {
   private String type;
   private String uuid;
   private String name;
-  private boolean tokenSaved;
 
   private EndPoint globusEndpoint;
 
+  @Transient
+  private boolean tokenSaved;
   @Transient
   private String token;
   @Transient

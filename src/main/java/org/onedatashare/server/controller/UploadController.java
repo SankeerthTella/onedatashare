@@ -25,8 +25,7 @@ public class UploadController {
 
     //TODO: make asynchronous
     @PostMapping(value="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Mono<Object> upload(@RequestHeader HttpHeaders headers,
-                               @RequestPart("directoryPath") String directoryPath,
+    public Mono<Object> upload(@RequestPart("directoryPath") String directoryPath,
                                @RequestPart("qqfilename") String fileName,
                                @RequestPart("map") String idMap,
                                @RequestPart("credential") String credential,
@@ -35,8 +34,7 @@ public class UploadController {
                                @RequestPart("qqtotalfilesize") String totalFileSize,
                                @RequestPart("qqfile") Mono<FilePart> filePart){
 
-        String cookie = headers.getFirst(ODSConstants.COOKIE);
-        return uploadService.uploadChunk(cookie, UUID.fromString(fileUUID),
+        return uploadService.uploadChunk(UUID.fromString(fileUUID),
             filePart, credential, directoryPath, fileName,
             Long.parseLong(totalFileSize), googledriveid, idMap).map(success -> {
                 FineUploaderResponse resp = new FineUploaderResponse();

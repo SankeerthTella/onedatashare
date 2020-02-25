@@ -3,6 +3,7 @@ package org.onedatashare.server.service;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.onedatashare.server.model.credential.UploadCredential;
 import org.onedatashare.server.model.core.*;
+import org.onedatashare.server.model.request.TransferRequest;
 import org.onedatashare.server.model.useraction.IdMap;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.model.useraction.UserActionCredential;
@@ -31,36 +32,37 @@ public class UploadService {
 
     private static Map<UUID, LinkedBlockingQueue<Slice>> ongoingUploads = new HashMap<UUID, LinkedBlockingQueue<Slice>>();
 
-    public Mono<Boolean> uploadChunk(String cookie, UUID uuid, Mono<FilePart> filePart, String credential,
+    public Mono<Boolean> uploadChunk(UUID uuid, Mono<FilePart> filePart, String credential,
                                  String directoryPath, String fileName, Long totalFileSize, String googleDriveId, String idmap) {
         if (ongoingUploads.containsKey(uuid)) {
             if(ongoingUploads.get(uuid).isEmpty())
                 return sendFilePart(filePart, ongoingUploads.get(uuid)).map(size -> true);
             else return Mono.just(false);
         } else {
-            UserAction ua = new UserAction();
-            ua.setSrc(new UserActionResource());
-            ua.getSrc().setUri(ODSConstants.UPLOAD_IDENTIFIER);
+            TransferRequest transferRequest = new TransferRequest();
+            transferRequest.setSrc(new UserActionResource());
+            transferRequest.getSrc().setUri(ODSConstants.UPLOAD_IDENTIFIER);
             LinkedBlockingQueue<Slice> uploadQueue = new LinkedBlockingQueue<Slice>();
 
-            ua.getSrc().setUploader( new UploadCredential(uploadQueue, totalFileSize, fileName) );
-            ua.setDest( new UserActionResource());
-            ua.getDest().setId( googleDriveId );
+            transferRequest.getSrc().setUploader( new UploadCredential(uploadQueue, totalFileSize, fileName) );
+            transferRequest.setDest( new UserActionResource());
+            transferRequest.getDest().setId( googleDriveId );
 
             try {
                 if(directoryPath.endsWith("/")) {
-                    ua.getDest().setUri( directoryPath+URLEncoder.encode(fileName,"UTF-8") );
+                    transferRequest.getDest().setUri( directoryPath+URLEncoder.encode(fileName,"UTF-8") );
                 } else {
-                    ua.getDest().setUri( directoryPath+"/"+URLEncoder.encode(fileName,"UTF-8") );
+                    transferRequest.getDest().setUri( directoryPath+"/"+URLEncoder.encode(fileName,"UTF-8") );
                 }
                 ObjectMapper mapper = new ObjectMapper();
-                ua.getDest().setCredential( mapper.readValue(credential, UserActionCredential.class) );
+                transferRequest.getDest().setCredential( mapper.readValue(credential, UserActionCredential.class) );
                 IdMap[] idms = mapper.readValue(idmap, IdMap[].class);
-                ua.getDest().setMap( new ArrayList<>(Arrays.asList(idms)) );
+                transferRequest.getDest().setMap( new ArrayList<>(Arrays.asList(idms)) );
             }catch(Exception e){
                 e.printStackTrace();
             }
-            resourceService.submit(cookie, ua).subscribe();
+
+            resourceService.submit(transferRequest).subscribe();
 
                 return sendFilePart(filePart, uploadQueue).map(size -> {
                     if (size < totalFileSize) {

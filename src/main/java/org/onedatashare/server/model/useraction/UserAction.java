@@ -95,12 +95,12 @@ public class UserAction {
 
     /**
      * Factory method for returning an object of type request data
-     * @param jobRequestData - data for making a job request
+     * @param jobActionRequest - data for making a job request
      * @return UserAction
      */
-    public static UserAction convertToUserAction(JobRequestData jobRequestData){
+    public static UserAction convertToUserAction(JobActionRequest jobActionRequest){
         UserAction ua = new UserAction();
-        ua.setJob_id(jobRequestData.getJob_id());
+        ua.setJob_id(jobActionRequest.getJobUUID());
         return ua;
     }
 

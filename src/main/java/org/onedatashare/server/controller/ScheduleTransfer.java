@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/api/stork/submit")
-public class SubmitController {
+public class ScheduleTransfer {
 
     @Autowired
     private TransferService transferService;
@@ -23,7 +23,7 @@ public class SubmitController {
      * @return Mono\<Job\>
      */
     @PostMapping
-    public Mono<Job> submit(@RequestBody TransferRequest transferRequest) {
+    public Mono<Job> schedule(@RequestBody TransferRequest transferRequest) {
         return transferService.submit(transferRequest);
     }
 }
