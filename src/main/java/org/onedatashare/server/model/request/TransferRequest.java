@@ -15,7 +15,6 @@ public class TransferRequest {
 
 @Data
 class SourceInfo{
-    //The
     private String sourceDirectoryURI;
     private Map<String, String> filesToTransferMap;
     private UserActionCredential endpointCredential;
