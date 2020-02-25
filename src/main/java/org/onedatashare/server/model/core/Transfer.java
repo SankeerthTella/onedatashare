@@ -35,42 +35,46 @@ public class Transfer<S extends Resource, D extends Resource> {
         this.destination = destination;
     }
 
+    private Flux<TransferInfo> handleGridftpTransfers(){
+        return ((GridftpResource) source).transferTo(((GridftpResource) destination)).flatMapMany(result -> {
+            String taskId = result.getTaskId();
+            startTimer();
+            info.setTotal(Long.MAX_VALUE);
+
+            return Flux.generate(() -> info, (state, sink) -> {
+
+                ((GridftpResource) source).getSession().client.getTaskDetail(taskId).map(detail -> {
+                    long total = detail.getBytes_transferred();
+                    addProgressSize((Long)total);
+                    String status = detail.getStatus();
+                    if("ACTIVE".equals(status)){
+                        sink.next(info);
+                    }else if("INACTIVE".equals(status)){
+                        sink.next(info);
+                    }else if("SUCCEEDED".equals(status)){
+                        info.setTotal(total);
+                        sink.next(info);
+                        sink.complete();
+                    }else if("FAILED".equals(status)){
+                        sink.error(new Exception("Globus transfer failure"));
+                    }
+                    return info;
+                }).subscribe();
+                try {
+                    TimeUnit.SECONDS.sleep(2);
+                }catch(InterruptedException e){}
+                return info;
+            }).subscribeOn(Schedulers.elastic()).take(100).map(info -> (TransferInfo)info).doFinally(s -> done());
+        });
+    }
+
     public Flux<TransferInfo> start(Long sliceSize) {
         if (source instanceof GridftpResource && destination instanceof GridftpResource){
-            return ((GridftpResource) source).transferTo(((GridftpResource) destination)).flatMapMany(result -> {
-                String taskId = result.getTaskId();
-                startTimer();
-                info.setTotal(Long.MAX_VALUE);
-
-                return Flux.generate(() -> info, (state, sink) -> {
-
-                    ((GridftpSession)((GridftpResource) source).getSession()).client.getTaskDetail(taskId).map(detail -> {
-                        long total = detail.getBytes_transferred();
-                        addProgressSize((Long)total);
-                        String status = detail.getStatus();
-                        if("ACTIVE".equals(status)){
-                            sink.next(info);
-                        }else if("INACTIVE".equals(status)){
-                            sink.next(info);
-                        }else if("SUCCEEDED".equals(status)){
-                            info.setTotal(total);
-                            sink.next(info);
-                            sink.complete();
-                        }else if("FAILED".equals(status)){
-                            sink.error(new Exception("Globus transfer failure"));
-                        }
-                        return info;
-                    }).subscribe();
-                    try {
-                        TimeUnit.SECONDS.sleep(2);
-                    }catch(InterruptedException e){}
-                    return info;
-                }).subscribeOn(Schedulers.elastic()).take(100).map(info -> (TransferInfo)info).doFinally(s -> done());
-            });
+            return handleGridftpTransfers();
         }else if (source instanceof GridftpResource || destination instanceof GridftpResource){
             return Flux.error(new Exception("Can not send from GridFTP to other protocols"));
         }
-// HTTP is read only
+        // HTTP is read only
         if(destination instanceof HttpResource)
             return Flux.error(new Exception("HTTP is read-only"));
 
