@@ -92,31 +92,7 @@ public class UserAction {
         ua.setMap(operationRequestData.getMap());
         return ua;
     }
-
-    /**
-     * Factory method for returning an object of type request data
-     * @param jobActionRequest - data for making a job request
-     * @return UserAction
-     */
-    public static UserAction convertToUserAction(JobActionRequest jobActionRequest){
-        UserAction ua = new UserAction();
-        ua.setJob_id(jobActionRequest.getJobUUID());
-        return ua;
-    }
-
-    /**
-     * Factory method for returning an object of type request data
-     * @param transferRequest - data for making a transfer request
-     * @return UserAction
-     */
-    public static UserAction convertToUserAction(TransferRequest transferRequest){
-        UserAction ua = new UserAction();
-        ua.setSrc(transferRequest.getSrc());
-        ua.setDest(transferRequest.getDest());
-        ua.setOptions(transferRequest.getOptions());
-        return ua;
-    }
-
+    
     /**
      * Factory method for returning an object of type request data
      * @param userRequestData - data for making a user request

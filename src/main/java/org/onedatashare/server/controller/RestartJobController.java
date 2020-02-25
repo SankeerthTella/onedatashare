@@ -24,6 +24,6 @@ public class RestartJobController {
      */
     @PostMapping
     public Mono<Job> restartJob(@RequestBody JobActionRequest jobActionRequest){
-        return transferService.restartJob(jobActionRequest);
+        return transferService.restartJob(jobActionRequest.getJobUUID());
     }
 }

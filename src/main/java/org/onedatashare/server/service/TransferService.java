@@ -159,7 +159,7 @@ public class TransferService {
         AtomicReference<User> u = new AtomicReference<>();
         return userService.getLoggedInUser()
                 .map(user -> {
-                    Job job = new Job(transferRequest.getSrc(), transferRequest.getDest());
+                    Job job = new Job(transferRequest.getSourceInfo(), transferRequest.getDestinationInfo());
                     job.setStatus(JobStatus.scheduled);
                     job = user.saveJob(job);
                     userService.saveUser(user).subscribe();

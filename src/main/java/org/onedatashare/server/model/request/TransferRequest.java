@@ -22,7 +22,9 @@ public class TransferRequest {
         private UserActionCredential endpointCredential;
     }
 
-    UserActionResource src;
-    UserActionResource dest;
-    TransferOptions options;
+    @Deprecated private UserActionResource src;
+    @Deprecated private UserActionResource dest;
+    private SourceInfo sourceInfo;
+    private DestinationInfo destinationInfo;
+    private TransferOptions options;
 }
