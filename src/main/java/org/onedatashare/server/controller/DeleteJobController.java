@@ -4,7 +4,7 @@ import org.onedatashare.server.model.core.Job;
 import org.onedatashare.server.model.core.ODSConstants;
 import org.onedatashare.server.model.request.JobRequestData;
 import org.onedatashare.server.model.useraction.UserAction;
-import org.onedatashare.server.service.ResourceServiceImpl;
+import org.onedatashare.server.service.TransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
 public class DeleteJobController {
 
     @Autowired
-    private ResourceServiceImpl resourceService;
+    private TransferService transferService;
 
     /**
      * Handler for the request for deleting a Job on the queue page.
@@ -28,9 +28,7 @@ public class DeleteJobController {
      * @return a map containing all the endpoint credentials linked to the user account as a Mono
      */
     @PostMapping
-    public Mono<Job> restartJob(@RequestHeader HttpHeaders headers, @RequestBody JobRequestData jobRequestData){
-        String cookie = headers.getFirst(ODSConstants.COOKIE);
-        UserAction userAction = UserAction.convertToUserAction(jobRequestData);
-        return resourceService.deleteJob(cookie, userAction);
+    public Mono<Job> restartJob(@RequestBody JobRequestData jobRequestData){
+        return transferService.deleteJob(jobRequestData);
     }
 }

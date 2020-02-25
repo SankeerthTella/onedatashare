@@ -27,7 +27,7 @@ public class UploadService {
     JobService jobService;
 
     @Autowired
-    ResourceServiceImpl resourceService;
+    TransferService resourceService;
 
     private static Map<UUID, LinkedBlockingQueue<Slice>> ongoingUploads = new HashMap<UUID, LinkedBlockingQueue<Slice>>();
 

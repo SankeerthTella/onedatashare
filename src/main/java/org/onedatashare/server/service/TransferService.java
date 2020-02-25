@@ -6,9 +6,9 @@ import org.onedatashare.server.model.credential.GlobusWebClientCredential;
 import org.onedatashare.server.model.credential.OAuthCredential;
 import org.onedatashare.server.model.credential.UploadCredential;
 import org.onedatashare.server.model.credential.UserInfoCredential;
-import org.onedatashare.server.model.error.TokenExpiredException;
+import org.onedatashare.server.model.request.JobRequestData;
+import org.onedatashare.server.model.request.TransferRequest;
 import org.onedatashare.server.model.useraction.IdMap;
-import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.model.useraction.UserActionResource;
 import org.onedatashare.server.module.box.BoxSession;
 import org.onedatashare.server.module.clientupload.ClientUploadSession;
@@ -25,16 +25,17 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.onedatashare.server.model.core.ODSConstants.*;
 
 @Service
-public class ResourceServiceImpl extends ResourceService {
+public class TransferService {
     @Autowired
     private UserService userService;
 
@@ -44,34 +45,8 @@ public class ResourceServiceImpl extends ResourceService {
     @Autowired
     private DecryptionService decryptionService;
 
-    private HashMap<UUID, Disposable> ongoingJobs = new HashMap<>();
-
-    public Mono<? extends Resource> getResourceWithUserActionUri(String cookie, UserAction userAction) {
-        final String path = pathFromUri(userAction.getUri());
-        String id = userAction.getId();
-        ArrayList<IdMap> idMap = userAction.getMap();
-
-        if (userAction.getCredential().isTokenSaved()) {
-            return userService.getLoggedInUser(cookie)
-                    .handle((usr, sink) -> {
-                        this.fetchCredentialsFromUserAction(usr, sink, userAction);
-                    })
-                    .map(credential -> new GoogleDriveSession(URI.create(userAction.getUri()), (Credential) credential))
-                    .flatMap(GoogleDriveSession::initialize)
-                    .flatMap(driveSession -> driveSession.select(path, id, idMap))
-                    .onErrorResume(throwable -> throwable instanceof TokenExpiredException, throwable ->
-                            Mono.just(userService.updateCredential(cookie, userAction.getCredential(), ((TokenExpiredException) throwable).cred))
-                                    .map(credential -> new GoogleDriveSession(URI.create(userAction.getUri()), credential))
-                                    .flatMap(GoogleDriveSession::initialize)
-                                    .flatMap(driveSession -> driveSession.select(path, id, idMap))
-                    );
-        } else {
-            return Mono.just(new OAuthCredential(userAction.getCredential().getToken()))
-                    .map(oAuthCred -> new GoogleDriveSession(URI.create(userAction.getUri()), oAuthCred))
-                    .flatMap(GoogleDriveSession::initializeNotSaved)
-                    .flatMap(driveSession -> driveSession.select(path, id, idMap));
-        }
-    }
+    // Hashmap that stores the disposable threads for every transfer
+    private ConcurrentHashMap<UUID, Disposable> ongoingJobs = new ConcurrentHashMap<>();
 
     public Mono<Resource> getResourceWithUserActionResource(User userObj, UserActionResource userActionResource) {
         final String path = pathFromUri(userActionResource.getUri());
@@ -120,7 +95,7 @@ public class ResourceServiceImpl extends ResourceService {
             path = uri;
 
         try {
-            path = java.net.URLDecoder.decode(path, "UTF-8");
+            path = URLDecoder.decode(path, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -181,27 +156,11 @@ public class ResourceServiceImpl extends ResourceService {
         }
     }
 
-    public Mono<Stat> list(String cookie, UserAction userAction) {
-        return getResourceWithUserActionUri(cookie, userAction).flatMap(Resource::stat);
-    }
-
-    public Mono<Boolean> mkdir(String cookie, UserAction userAction) {
-        return getResourceWithUserActionUri(cookie, userAction)
-                .flatMap(Resource::mkdir)
-                .map(r -> true);
-    }
-
-    public Mono<Boolean> delete(String cookie, UserAction userAction) {
-        return getResourceWithUserActionUri(cookie, userAction)
-                .flatMap(Resource::delete)
-                .map(val -> true);
-    }
-
-    public Mono<Job> submit(String cookie, UserAction userAction) {
+    public Mono<Job> submit(TransferRequest transferRequest) {
         AtomicReference<User> u = new AtomicReference<>();
-        return userService.getLoggedInUser(cookie)
+        return userService.getLoggedInUser()
                 .map(user -> {
-                    Job job = new Job(userAction.getSrc(), userAction.getDest());
+                    Job job = new Job(transferRequest.getSrc(), transferRequest.getDest());
                     job.setStatus(JobStatus.scheduled);
                     job = user.saveJob(job);
                     userService.saveUser(user).subscribe();
@@ -209,44 +168,34 @@ public class ResourceServiceImpl extends ResourceService {
                     return job;
                 })
                 .flatMap(jobService::saveJob)
-                .doOnSuccess(job -> processTransferFromJob(job, u))
+                .doOnSuccess(job -> processTransferFromJob(job, u.get()))
                 .subscribeOn(Schedulers.elastic());
     }
 
-    //@Override
-    public Mono<String> download(String cookie, UserAction userAction) {
-        return getResourceWithUserActionUri(cookie, userAction)
-                .flatMap(Resource::download);
+    public Mono<Job> restartJob(JobRequestData jobRequestData) {
+        return userService.getLoggedInUser()
+                .flatMap(user -> jobService.findJobByJobId(jobRequestData.getJob_id())
+                        .flatMap(job -> {
+                            Job restartedJob = new Job(job.getSrc(), job.getDest());
+                            boolean credsExists = updateJobCredentials(user, job);
+                            if (!credsExists) {
+                                return Mono.error(new Exception("Restart job failed since either or both credentials of the job do not exist"));
+                            }
+                            restartedJob.setStatus(JobStatus.scheduled);
+                            restartedJob.setRestartedJob(true);
+                            restartedJob.setSourceJob(jobRequestData.getJob_id());
+                            restartedJob = user.saveJob(restartedJob);
+                            userService.saveUser(user).subscribe();
+                            return Mono.just(restartedJob);
+                        })
+                        .flatMap(jobService::saveJob)
+                        .doOnSuccess(restartedJob -> processTransferFromJob(restartedJob, new String())));
     }
 
-    public Mono<Job> restartJob(String cookie, UserAction userAction) {
-        return userService.getLoggedInUser(cookie)
-                .flatMap(user -> {
-                    return jobService.findJobByJobId(cookie, userAction.getJob_id())
-                            .flatMap(job -> {
-                                Job restartedJob = new Job(job.getSrc(), job.getDest());
-                                boolean credsExists = updateJobCredentials(user, job);
-                                if (!credsExists) {
-                                    return Mono.error(new Exception("Restart job failed since either or both credentials of the job do not exist"));
-                                }
-                                restartedJob.setStatus(JobStatus.scheduled);
-                                restartedJob.setRestartedJob(true);
-                                restartedJob.setSourceJob(userAction.getJob_id());
-                                restartedJob = user.saveJob(restartedJob);
-                                userService.saveUser(user).subscribe();
-                                return Mono.just(restartedJob);
-                            })
-                            .flatMap(jobService::saveJob)
-                            .doOnSuccess(restartedJob -> processTransferFromJob(restartedJob, cookie));
-                });
-    }
-
-    public Mono<Job> deleteJob(String cookie, UserAction userAction) {
-        return jobService.findJobByJobId(cookie, userAction.getJob_id())
-                .map(job -> {
-                    job.setDeleted(true);
-                    return job;
-                }).flatMap(jobService::saveJob);
+    public Mono<Job> deleteJob(JobRequestData jobRequestData) {
+        return jobService.findJobByJobId(jobRequestData.getJob_id())
+                .map(job -> job.setDeleted(true))
+                .flatMap(jobService::saveJob);
     }
 
     /**
@@ -255,13 +204,12 @@ public class ResourceServiceImpl extends ResourceService {
      * which is in turn used to access the ongoing job flux from the ongoingJobs map.
      * This flux is then disposed and the job is evicted from the map to cancel the transfer.
      *
-     * @param cookie
-     * @param userAction
+     * @param jobRequestData
      * @return Mono of job that was stopped
      */
-    public Mono<Job> cancel(String cookie, UserAction userAction) {
-        return userService.getLoggedInUser(cookie)
-                .flatMap((User user) -> jobService.findJobByJobId(cookie, userAction.getJob_id())
+    public Mono<Job> cancel(JobRequestData jobRequestData) {
+        return userService.getLoggedInUser()
+                .flatMap((User user) -> jobService.findJobByJobId(jobRequestData.getJob_id())
                         .map(job -> {
                             try {
                                 ongoingJobs.get(job.getUuid()).dispose();
@@ -314,11 +262,11 @@ public class ResourceServiceImpl extends ResourceService {
         return null;
     }
 
-    public void processTransferFromJob(Job job, AtomicReference<User> user) {
+    public void processTransferFromJob(Job job, User user) {
         Transfer<Resource, Resource> transfer = new Transfer<>();
-        Disposable ongoingJob = getResourceWithUserActionResource(user.get(), job.getSrc())
+        Disposable ongoingJob = getResourceWithUserActionResource(user, job.getSrc())
                 .map(transfer::setSource)
-                .flatMap(t -> getResourceWithUserActionResource(user.get(), job.getDest()))
+                .flatMap(t -> getResourceWithUserActionResource(user, job.getDest()))
                 .map(transfer::setDestination)
                 .flux()
                 .flatMap(transfer1 -> {

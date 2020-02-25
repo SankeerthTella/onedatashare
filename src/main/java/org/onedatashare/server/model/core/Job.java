@@ -1,6 +1,7 @@
 package org.onedatashare.server.model.core;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.onedatashare.server.model.useraction.UserActionResource;
 import org.onedatashare.server.model.util.Time;
 import org.onedatashare.server.model.util.Times;
@@ -34,7 +35,7 @@ public class Job {
   private int job_id;
 
   /** To mark job as deleted **/
-  private boolean deleted = false;
+  @Accessors(chain = true) private boolean deleted = false;
 
   /** The owner of the job. */
   private String owner;

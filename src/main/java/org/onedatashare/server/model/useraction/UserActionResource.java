@@ -13,6 +13,8 @@ public class  UserActionResource {
   private String uri;
   private String id;
   private UserActionCredential credential;
+
+  /* Map of all the files in the path to be transferred */
   private ArrayList<IdMap> map;
   private String type;
 
