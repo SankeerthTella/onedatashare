@@ -8,21 +8,22 @@ import java.util.Map;
 
 @Data
 public class TransferRequest {
+    @Data
+    public class SourceInfo{
+        private String sourceDirectoryURI;
+        private Map<String, String> filesToTransferMap;
+        private UserActionCredential endpointCredential;
+    }
+
+    @Data
+    public class DestinationInfo{
+        private String destinationDirectoryURI;
+        private String destinationId;
+        private UserActionCredential endpointCredential;
+    }
+
     UserActionResource src;
     UserActionResource dest;
     TransferOptions options;
 }
 
-@Data
-class SourceInfo{
-    private String sourceDirectoryURI;
-    private Map<String, String> filesToTransferMap;
-    private UserActionCredential endpointCredential;
-}
-
-@Data
-class DestinationInfo{
-    private String destinationDirectoryURI;
-    private String destinationId;
-    private UserActionCredential endpointCredential;
-}
