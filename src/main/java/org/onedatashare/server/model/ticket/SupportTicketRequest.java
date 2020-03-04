@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
  * @since 05-03/2018
  */
 @Data
-@Component
 public class SupportTicketRequest {
 
     @NonNull

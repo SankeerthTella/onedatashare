@@ -2,19 +2,39 @@ package org.onedatashare.server.service.oauth;
 
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.onedatashare.server.model.core.Credential;
 import org.onedatashare.server.model.credential.OAuthCredential;
 import org.onedatashare.server.service.ODSLoggerService;
 import org.onedatashare.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.beans.ConstructorProperties;
 import java.util.Date;
 
 /**
  *author: Javier Falca
  */
+
+@ConfigurationProperties(prefix = "box")
+@ConstructorBinding
+@AllArgsConstructor
+class BoxConfig {
+    final String client_id;
+    final String client_secret;
+    final String redirect_uri;
+    final String scope;
+    final String box_redirect;
+}
 
 @Service
 public class BoxOauthService {
@@ -22,24 +42,15 @@ public class BoxOauthService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private BoxConfig boxConfig;
 
-    public static class BoxConfig {
-
-        private static String client_id = System.getenv("BOX_CLIENT_ID");
-        private static String client_secret = System.getenv("BOX_CLIENT_SECRET");
-        private static String scope = "root_readwrite";
-        private static String redirect_uri = System.getenv("BOX_REDIRECT_URI");
-        private static String box_redirect = "https://account.box.com/api/oauth2/authorize";
-
-    }
-
-    public synchronized String start() {
-
-        String box_redirect = BoxConfig.box_redirect
+    public String start() {
+        String box_redirect = boxConfig.box_redirect
                 + "?response_type=code"
-                + "&client_id=" + BoxConfig.client_id
-                + "&redirect_uri=" + BoxConfig.redirect_uri
-                + "&scope=" + BoxConfig.scope;
+                + "&client_id=" + boxConfig.client_id
+                + "&redirect_uri=" + boxConfig.redirect_uri
+                + "&scope=" + boxConfig.scope;
 
         return box_redirect;
     }
@@ -49,10 +60,10 @@ public class BoxOauthService {
      * @return OAuthCredential
      */
 
-    public synchronized Mono<OAuthCredential> finish(String code, String cookie) {
+    public Mono<OAuthCredential> finish(String code, String cookie) {
 
         // Instantiate new Box API connection object
-        BoxAPIConnection client = new BoxAPIConnection(BoxConfig.client_id, BoxConfig.client_secret, code);
+        BoxAPIConnection client = new BoxAPIConnection(boxConfig.client_id, boxConfig.client_secret, code);
         OAuthCredential oauth = new OAuthCredential(client.getAccessToken());
         BoxUser user = BoxUser.getCurrentUser(client);
         BoxUser.Info userInfo = user.getInfo();
@@ -76,7 +87,5 @@ public class BoxOauthService {
             ODSLoggerService.logError("Runtime exception occurred while finishing initializing Box oauth session");
             throw new RuntimeException(e);
         }
-
     }
-
 }

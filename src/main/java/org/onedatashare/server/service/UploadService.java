@@ -91,7 +91,7 @@ public class UploadService {
 
     public Mono<Void> finishUpload(UUID uuid) {
         if(!ongoingUploads.containsKey(uuid)){
-            return Mono.error(null);
+            return Mono.error(new UnsupportedOperationException());
         }
         ongoingUploads.remove(uuid);
         return Mono.just(null);

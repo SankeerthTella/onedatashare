@@ -55,7 +55,7 @@ public class GoogleDriveOauthService{
         return url;
     }
 
-    public synchronized String start() {
+    public String start() {
         GoogleClientSecrets cs = driveConfig.getDriveClientSecrets();
         GoogleClientSecrets.Details dt = cs.getDetails();
 

@@ -11,7 +11,7 @@ export const DOWNLOAD_OP_URL = "/download"
 export const UPLOAD_OP_URL = "/upload"
 export const SHARE_OP_URL = "/share"
 export const SFTP_DOWNLOAD_URL = "download/file"
-export const OAUTH_URL = "download/file"
+export const OAUTH_URL = "/initiate-oauth"
 
 
 export const url = "/api/stork/";

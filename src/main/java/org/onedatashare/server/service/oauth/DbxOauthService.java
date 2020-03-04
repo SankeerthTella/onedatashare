@@ -3,13 +3,13 @@ package org.onedatashare.server.service.oauth;
 import com.dropbox.core.*;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.users.FullAccount;
+import lombok.AllArgsConstructor;
 import org.onedatashare.server.model.core.Credential;
 import org.onedatashare.server.model.credential.OAuthCredential;
-import org.onedatashare.server.model.error.DuplicateCredentialException;
-import org.onedatashare.server.service.ODSLoggerService;
 import org.onedatashare.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.result.view.RedirectView;
 import reactor.core.publisher.Mono;
@@ -18,20 +18,25 @@ import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
+@ConfigurationProperties(prefix = "dropbox")
+@ConstructorBinding
+@AllArgsConstructor
+class DbxConfig {
+    final String client_id;
+    final String client_secret;
+    final String redirect_uri;
+    final String identifier;
+}
+
+
 @Service
 public class DbxOauthService  {
 
-    private String key = System.getenv("ods_dropbox_key");
-    private String secret = System.getenv("ods_dropbox_secret");
-
-    @Value("${dropbox.redirect.uri}")
-    private String finishURI;
+    @Autowired
+    private DbxConfig dbxConfig;
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private OauthService oauthService;
 
     private DbxAppInfo secrets;
 
@@ -41,7 +46,7 @@ public class DbxOauthService  {
 
     private DbxWebAuth auth;
 
-    public synchronized String start() {
+    public String start() {
         if (secrets == null) {
             throw new RuntimeException("Dropbox OAuth is disabled.");
         } if (auth != null) {
@@ -49,7 +54,7 @@ public class DbxOauthService  {
         } try {
             auth = new DbxWebAuth(config, secrets);
             // Authorize the DbxWebAuth auth as well as redirect the user to the finishURI, done this way to appease OAuth 2.0
-            return auth.authorize(DbxWebAuth.Request.newBuilder().withRedirectUri(finishURI, sessionStore).build());
+            return auth.authorize(DbxWebAuth.Request.newBuilder().withRedirectUri(dbxConfig.redirect_uri, sessionStore).build());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -57,10 +62,10 @@ public class DbxOauthService  {
 
     public synchronized Mono<OAuthCredential> finish(String token, String cookie) {
         Map<String,String[]> map = new HashMap();
-        map.put("state", new String[] {this.key});
+        map.put("state", new String[] {dbxConfig.client_id});
         map.put("code", new String[] {token});
         try {
-            DbxAuthFinish finish = auth.finishFromRedirect(finishURI, sessionStore, map);
+            DbxAuthFinish finish = auth.finishFromRedirect(dbxConfig.redirect_uri, sessionStore, map);
             OAuthCredential cred = new OAuthCredential(finish.getAccessToken());
             FullAccount account = new DbxClientV2(config, finish.getAccessToken()).users().getCurrentAccount();
             cred.name = "Dropbox: " + account.getEmail();
@@ -89,12 +94,13 @@ public class DbxOauthService  {
 
     @PostConstruct
     public void postConstructInit(){
-        secrets = new DbxAppInfo(this.key, this.secret);
-        config = DbxRequestConfig.newBuilder("OneDataShare-DIDCLab").build();
+        secrets = new DbxAppInfo(dbxConfig.client_id, dbxConfig.client_secret);
+        config = DbxRequestConfig.newBuilder(dbxConfig.identifier).build();
         sessionStore = new DbxSessionStore() {
             public void clear() { set(null); }
-            public String get() { return key; }
-            public void set(String s) { key = s; }
+            public String get() { return dbxConfig.client_id; }
+            public void set(String s) {
+            }
         };
     }
 }

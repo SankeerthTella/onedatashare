@@ -18,9 +18,8 @@ public abstract class OAuthEndpointBaseController extends EndpointBaseController
         private String uri;
     }
 
-
     @GetMapping("/initiate-oauth")
-    public Mono<OAuthResponse> initiateOauth(@RequestBody RequestData requestData){
+    public Mono<OAuthResponse> initiateOauth(){
         return initiateOauthOperation();
     }
 
