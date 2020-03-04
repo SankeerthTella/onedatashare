@@ -14,9 +14,11 @@ import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/box")
-public class BoxController extends EndpointBaseController{
+public class BoxController extends OAuthEndpointBaseController{
     @Autowired
     private BoxService boxService;
 
@@ -53,8 +55,14 @@ public class BoxController extends EndpointBaseController{
     }
 
     @Override
-    protected Rendering oauthOperation() {
-        return Rendering.redirectTo(boxOauthService.start()).build();
+    protected Mono<OAuthResponse> initiateOauthOperation() {
+        return Mono.fromSupplier(() -> boxOauthService.start())
+                .map(OAuthResponse::new);
+    }
+
+    @Override
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+        return null;
     }
 
 }

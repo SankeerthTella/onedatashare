@@ -146,7 +146,8 @@ export async function getDownload(uri, credential) {
 
 
 export async function openDropboxOAuth() {
-	openOAuth("/api/stork/oauth?type=dropbox");
+    openOAuth("/api/dropbox/auth");
+	// openOAuth("/api/stork/oauth?type=dropbox");
 }
 
 export async function openGoogleDriveOAuth() {
@@ -162,7 +163,14 @@ export async function openBoxOAuth(){
 }
 
 export async function openOAuth(url){
-	window.location = url;
+    axios.get(url)
+    .then(resp => 
+        {
+        console.log(resp);
+        window.location = resp.data.s;
+    }).catch(err => {
+        console.log(err);
+    });
 }
 
 

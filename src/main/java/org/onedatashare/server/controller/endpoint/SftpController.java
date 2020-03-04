@@ -57,10 +57,6 @@ public class SftpController extends EndpointBaseController{
     protected Mono<String> downloadOperation(@RequestBody RequestData requestData){
         return Mono.error(new UnsupportedOperationException());
     }
-    @Override
-    protected Rendering oauthOperation() {
-        throw new UnsupportedOperationException();
-    }
 
     @PostMapping(value = "/file")
     public Mono<ResponseEntity> downloadFile(@RequestHeader HttpHeaders clientHttpHeaders) {

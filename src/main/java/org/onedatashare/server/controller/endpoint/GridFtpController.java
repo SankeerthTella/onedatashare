@@ -1,26 +1,25 @@
 package org.onedatashare.server.controller.endpoint;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.onedatashare.server.model.core.Stat;
 import org.onedatashare.server.model.error.UnsupportedOperationException;
 import org.onedatashare.server.model.request.OperationRequestData;
 import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.model.useraction.UserAction;
-import org.onedatashare.server.model.util.Response;
 import org.onedatashare.server.service.GridftpService;
 import org.onedatashare.server.service.oauth.GridftpAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/gridftp")
-public class GridFtpController extends EndpointBaseController{
+public class GridFtpController extends OAuthEndpointBaseController{
     @Autowired
     private GridftpService gridftpService;
 
@@ -56,7 +55,13 @@ public class GridFtpController extends EndpointBaseController{
     }
 
     @Override
-    protected Rendering oauthOperation() {
-        return Rendering.redirectTo(gridftpAuthService.start()).build();
+    protected Mono<OAuthResponse> initiateOauthOperation() {
+        return Mono.fromSupplier(() -> gridftpAuthService.start())
+                .map(OAuthResponse::new);
+    }
+
+    @Override
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+        return null;
     }
 }

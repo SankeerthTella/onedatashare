@@ -14,9 +14,11 @@ import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/dropbox")
-public class DbxController extends EndpointBaseController{
+public class DbxController extends OAuthEndpointBaseController{
     @Autowired
     private DbxService dbxService;
 
@@ -53,7 +55,13 @@ public class DbxController extends EndpointBaseController{
     }
 
     @Override
-    protected Rendering oauthOperation() {
-        return Rendering.redirectTo(dbxOauthService.start()).build();
+    protected Mono<OAuthResponse> initiateOauthOperation() {
+        return Mono.fromSupplier(() -> dbxOauthService.start())
+                .map(OAuthResponse::new);
+    }
+
+    @Override
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+        return null;
     }
 }

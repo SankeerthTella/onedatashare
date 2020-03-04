@@ -1,5 +1,7 @@
 package org.onedatashare.server.controller.endpoint;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.onedatashare.server.model.core.Stat;
 import org.onedatashare.server.model.error.AuthenticationRequired;
 import org.onedatashare.server.model.error.DuplicateCredentialException;
@@ -10,21 +12,17 @@ import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.service.ODSLoggerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
+
 
 public abstract class EndpointBaseController {
 
     static final ResponseEntity successResponse = new ResponseEntity("Success", HttpStatus.OK);
 
-    @GetMapping("/oauth")
-    public Rendering oauth(@RequestBody RequestData requestData){
-        return oauthOperation();
-    }
 
     @PostMapping("/ls")
     public Mono<Stat> list(@RequestBody RequestData requestData){
@@ -60,7 +58,7 @@ public abstract class EndpointBaseController {
     protected abstract Mono<ResponseEntity> deleteOperation(OperationRequestData operationRequestData);
     protected abstract Mono<Stat> uploadOperation();
     protected abstract Mono<String> downloadOperation(RequestData requestData);
-    protected abstract Rendering oauthOperation();
+
 
     @ExceptionHandler(AuthenticationRequired.class)
     public ResponseEntity<String> handle(AuthenticationRequired authenticationRequired) {
@@ -82,5 +80,4 @@ public abstract class EndpointBaseController {
         ODSLoggerService.logError(dce.status.toString());
         return Rendering.redirectTo("/transfer").build();
     }
-
 }

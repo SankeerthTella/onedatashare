@@ -15,9 +15,11 @@ import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/googledrive")
-public class GdriveController extends EndpointBaseController{
+public class GdriveController extends OAuthEndpointBaseController{
     @Autowired
     private GdriveService gdriveService;
 
@@ -54,7 +56,13 @@ public class GdriveController extends EndpointBaseController{
     }
 
     @Override
-    protected Rendering oauthOperation() {
-        return Rendering.redirectTo(googleDriveOauthService.start()).build();
+    protected Mono<OAuthResponse> initiateOauthOperation() {
+        return Mono.fromSupplier(() -> googleDriveOauthService.start())
+                .map(OAuthResponse::new);
+    }
+
+    @Override
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+        return null;
     }
 }
