@@ -162,13 +162,14 @@ export async function openBoxOAuth() {
 }
 
 async function openOAuth(type) {
-    axios.get(buildEndpointOperationURL(ENDPOINT_OP_URL, getUriType(type), OAUTH_URL))
-        .then(resp => {
-            console.log(resp);
-            window.location = resp.data.uri;
-        }).catch(err => {
-            console.log(err);
-        });
+    window.location = buildEndpointOperationURL(ENDPOINT_OP_URL, getUriType(type), OAUTH_URL);
+    // axios.get(buildEndpointOperationURL(ENDPOINT_OP_URL, getUriType(type), OAUTH_URL))
+    //     .then(resp => {
+    //         console.log(resp);
+    //         window.location = resp.data.uri;
+    //     }).catch(err => {
+    //         console.log(err);
+    //     });
 }
 
 

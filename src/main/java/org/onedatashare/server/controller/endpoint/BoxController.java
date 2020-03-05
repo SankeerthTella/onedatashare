@@ -55,13 +55,12 @@ public class BoxController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Mono<OAuthResponse> initiateOauthOperation() {
-        return Mono.fromSupplier(() -> boxOauthService.start())
-                .map(OAuthResponse::new);
+    protected Rendering initiateOauthOperation() {
+        return this.redirectTo(boxOauthService.start());
     }
 
     @Override
-    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+    protected Rendering completeOauthOperation(Map<String, String> queryParameters) {
         return null;
     }
 

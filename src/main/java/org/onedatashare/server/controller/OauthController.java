@@ -204,17 +204,16 @@ public class OauthController {
 
     @GetMapping
     public Rendering handle(@RequestParam String type) throws NotFoundException {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+
         switch (type){
             case box:
-                return Rendering.redirectTo(boxOauthService.start()).headers(httpHeaders).build();
+                return Rendering.redirectTo(boxOauthService.start()).build();
             case dropbox:
-                return Rendering.redirectTo(dbxOauthService.start()).headers(httpHeaders).build();
+                return Rendering.redirectTo(dbxOauthService.start()). build();
             case googledrive:
-                return Rendering.redirectTo(googleDriveOauthService.start()).headers(httpHeaders).build();
+                return Rendering.redirectTo(googleDriveOauthService.start()).build();
             case gridftp:
-                return Rendering.redirectTo(gridftpAuthService.start()).headers(httpHeaders).build();
+                return Rendering.redirectTo(gridftpAuthService.start()).build();
             default:
                 throw new NotFoundException();
         }

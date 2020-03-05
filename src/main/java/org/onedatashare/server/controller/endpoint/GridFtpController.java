@@ -55,13 +55,12 @@ public class GridFtpController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Mono<OAuthResponse> initiateOauthOperation() {
-        return Mono.fromSupplier(() -> gridftpAuthService.start())
-                .map(OAuthResponse::new);
+    protected Rendering initiateOauthOperation() {
+        return this.redirectTo(gridftpAuthService.start());
     }
 
     @Override
-    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+    protected Rendering completeOauthOperation(Map<String, String> queryParameters) {
         return null;
     }
 }
