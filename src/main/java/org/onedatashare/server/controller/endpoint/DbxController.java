@@ -8,15 +8,16 @@ import org.onedatashare.server.service.DbxService;
 import org.onedatashare.server.service.oauth.DbxOauthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 
-@RestController
+@Controller
 @RequestMapping("/api/dropbox")
 public class DbxController extends OAuthEndpointBaseController{
     @Autowired
@@ -24,6 +25,12 @@ public class DbxController extends OAuthEndpointBaseController{
 
     @Autowired
     private DbxOauthService dbxOauthService;
+
+
+    @GetMapping("/a")
+    public Rendering oauth(){
+        return Rendering.redirectTo(dbxOauthService.start()).build();
+    }
 
     @Override
     protected Mono<Stat> listOperation(RequestData requestData) {

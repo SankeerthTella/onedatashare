@@ -35,6 +35,7 @@ export const termsUrl = "/terms";
 export const policyUrl = "/policy";
 
 export const AUTH_ENDPOINT = "/authenticate";
+export const LOGOUT_ENDPOINT = "/deauthenticate";
 export const RESET_PASSWD_ENDPOINT = "/reset-password";
 export const IS_REGISTERED_EMAIL_ENDPOINT = "/is-email-registered";
 export const SEND_PASSWD_RST_CODE_ENDPOINT = "/send-passwd-rst-code";
@@ -147,7 +148,8 @@ export const defaultPort = {
 	https: 443
 }
 
-export const maxCookieAge = 7;
+//Seconds for which the cookie is valid
+export const maxCookieAge = 3600;
 
 export const jobStatus = {
 	COMPLETED: 'completed',

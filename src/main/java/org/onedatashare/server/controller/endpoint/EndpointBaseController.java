@@ -12,6 +12,7 @@ import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.service.ODSLoggerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
@@ -25,27 +26,27 @@ public abstract class EndpointBaseController {
 
 
     @PostMapping("/ls")
-    public Mono<Stat> list(@RequestBody RequestData requestData){
+    public @ResponseBody Mono<Stat> list(@RequestBody RequestData requestData){
         return listOperation(requestData);
     }
 
     @PostMapping("/mkdir")
-    public Mono<ResponseEntity> mkdir(@RequestBody OperationRequestData operationRequestData){
+    public @ResponseBody Mono<ResponseEntity> mkdir(@RequestBody OperationRequestData operationRequestData){
         return mkdirOperation(operationRequestData);
     }
 
     @PostMapping("/rm")
-    public Mono<ResponseEntity> delete(@RequestBody OperationRequestData operationRequestData){
+    public @ResponseBody Mono<ResponseEntity> delete(@RequestBody OperationRequestData operationRequestData){
         return deleteOperation(operationRequestData);
     }
 
     @PostMapping("/upload")
-    public Mono<Stat> upload(){
+    public @ResponseBody Mono<Stat> upload(){
         return uploadOperation();
     }
 
     @PostMapping("/download")
-    public Mono download(@RequestBody RequestData requestData){
+    public @ResponseBody Mono download(@RequestBody RequestData requestData){
         return downloadOperation(requestData);
     }
 
