@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -62,7 +61,7 @@ public class GdriveController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Rendering completeOauthOperation(Map<String, String> queryParameters) {
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
         return null;
     }
 }

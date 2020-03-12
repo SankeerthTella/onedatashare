@@ -77,7 +77,7 @@ public class OauthController {
                 .flatMap(user -> {
                     if (user.isSaveOAuthTokens()) {
                         return googleDriveOauthService.finish(queryParameters.get("code"), cookie)
-                                .flatMap(oAuthCred -> userService.saveCredential(cookie, oAuthCred))
+                                .flatMap(oAuthCred -> userService.saveCredential(oAuthCred))
                                 .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
                                 .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredGoogleDrive").build()));
                     } else {
@@ -99,14 +99,11 @@ public class OauthController {
 
     /**
      * Handler for google drive oauth requests
-     * @param headers - Incoming request headers
      * @param queryParameters - Query parameters
      * @return Mono\<String\>
      */
     @GetMapping(value = "/dropbox")
-    public Object dropboxOauthFinish(@RequestHeader HttpHeaders headers, @RequestParam Map<String, String> queryParameters) {
-        String cookie = headers.getFirst(ODSConstants.COOKIE);
-
+    public Object dropboxOauthFinish(@RequestParam Map<String, String> queryParameters) {
         if (!queryParameters.containsKey("code")) {
             StringBuilder errorStringBuilder = new StringBuilder();
             if (queryParameters.containsKey("error_description")) {
@@ -121,14 +118,14 @@ public class OauthController {
             return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
         }
 
-        return userService.getLoggedInUser(cookie).flatMap(user -> {
+        return userService.getLoggedInUser().flatMap(user -> {
             if (user.isSaveOAuthTokens())
-                return dbxOauthService.finish(queryParameters.get("code"), cookie)
-                        .flatMap(oauthCred -> userService.saveCredential(cookie, oauthCred))
+                return dbxOauthService.finish(queryParameters.get("code"))
+                        .flatMap(oauthCred -> userService.saveCredential(oauthCred))
                         .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
                         .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredDropbox").build()));
             else
-                return dbxOauthService.finish(queryParameters.get("code"), cookie)
+                return dbxOauthService.finish(queryParameters.get("code"))
                         .map(oAuthCredential -> {
                             try {
                                 return "/oauth/dropbox?creds=" + URLEncoder.encode(objectMapper.writeValueAsString(oAuthCredential), StandardCharsets.UTF_8.toString());
@@ -150,11 +147,11 @@ public class OauthController {
      */
     @GetMapping(value = "/gridftp")
     public Object gridftpOauthFinish(@RequestHeader HttpHeaders headers, @RequestParam Map<String, String> queryParameters) {
-        String cookie = headers.getFirst(ODSConstants.COOKIE);
         return gridftpAuthService.finish(queryParameters.get("code"))
-                .flatMap(oauthCred -> userService.saveCredential(cookie, oauthCred))
+                .flatMap(oauthCred -> userService.saveCredential(oauthCred))
                 .map(uuid -> Rendering.redirectTo("/oauth/" + uuid).build());
     }
+
     /**
      * Handler for Box requests
      * @param headers - Incoming request headers
@@ -182,7 +179,7 @@ public class OauthController {
                 .flatMap(user -> {
                     if (user.isSaveOAuthTokens()) {
                         return boxOauthService.finish(queryParameters.get("code"), cookie)
-                                .flatMap(oAuthCred -> userService.saveCredential(cookie, oAuthCred))
+                                .flatMap(oAuthCred -> userService.saveCredential(oAuthCred))
                                 .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
                                 .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredBox").build()));
                     } else {
@@ -203,6 +200,7 @@ public class OauthController {
     }
 
     @GetMapping
+    //TODO: delete
     public Rendering handle(@RequestParam String type) throws NotFoundException {
 
         switch (type){
@@ -219,12 +217,14 @@ public class OauthController {
         }
     }
 
+    //TODO: delete
     @ExceptionHandler(NotFoundException.class)
     public Rendering handle(NotFoundException notfound) {
         ODSLoggerService.logError(notfound.status.toString());
         return Rendering.redirectTo("/404").build();
     }
 
+    //TODO: delete
     @ExceptionHandler(DuplicateCredentialException.class)
     public Rendering handleDup(DuplicateCredentialException dce) {
         ODSLoggerService.logError(dce.status.toString());

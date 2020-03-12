@@ -2,30 +2,29 @@ package org.onedatashare.server.service;
 
 import org.onedatashare.server.model.core.*;
 import org.onedatashare.server.model.credential.OAuthCredential;
-import org.onedatashare.server.model.error.AuthenticationRequired;
-import org.onedatashare.server.model.error.NotFoundException;
 import org.onedatashare.server.model.useraction.UserActionResource;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.module.dropbox.DbxResource;
 import org.onedatashare.server.module.dropbox.DbxSession;
+import org.onedatashare.server.service.oauth.DbxOauthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class DbxService extends ResourceService{
+public class DbxService extends OAuthResourceService{
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    private JobService jobService;
+    private DbxOauthService dbxOauthService;
 
     public Mono<DbxResource> getDbxResourceWithUserActionUri(String cookie, UserAction userAction) {
         if(userAction.getCredential().isTokenSaved()) {
@@ -88,47 +87,25 @@ public class DbxService extends ResourceService{
                 .map(val -> true);
     }
 
-    public Mono<Job> submit(String cookie, UserAction userAction) {
-        return userService.getLoggedInUser(cookie)
-                .map(user -> {
-                    Job job = new Job(userAction.getSrc(), userAction.getDest());
-                    job.setStatus(JobStatus.scheduled);
-                    job = user.saveJob(job);
-                    userService.saveUser(user).subscribe();
-                    return job;
-                })
-                .flatMap(jobService::saveJob)
-                .doOnSuccess(job -> processTransferFromJob(job, cookie))
-                .subscribeOn(Schedulers.elastic());
-    }
-
     @Override
     public Mono<String> download(String cookie, UserAction userAction) {
         return getDbxResourceWithUserActionUri(cookie,userAction)
                 .flatMap(DbxResource::generateDownloadLink).subscribeOn(Schedulers.elastic());
     }
 
-    public void processTransferFromJob(Job job, String cookie) {
-        Transfer<DbxResource, DbxResource> transfer = new Transfer<>();
-        getDbxResourceWithJobSourceOrDestination(cookie, job.getSrc())
-                .map(transfer::setSource)
-                .flatMap(t -> getDbxResourceWithJobSourceOrDestination(cookie, job.getDest()))
-                .map(transfer::setDestination)
-                .flux()
-                .flatMap(transfer1 -> transfer1.start(1L << 20))
-                .doOnSubscribe(s -> job.setStatus(JobStatus.transferring))
-                .doFinally(s -> {
-                    job.setStatus(JobStatus.complete);
-                    jobService.saveJob(job).subscribe();
-                })
-                .map(job::updateJobWithTransferInfo)
-                .flatMap(jobService::saveJob)
-                .subscribe();
+    @Override
+    public Mono<String> getOAuthUrl() {
+        return Mono.fromSupplier(() -> dbxOauthService.start());
     }
 
-    public Mono<String> getDownloadURL(String cookie, UserAction userAction){
-        return getDbxResourceWithUserActionUri(cookie,userAction)
-                .flatMap(DbxResource::generateDownloadLink).subscribeOn(Schedulers.elastic());
+    public String getOAuthUrl2(){
+        return dbxOauthService.start();
     }
-
+    @Override
+    public Mono<String> completeOAuth(String token) {
+        return dbxOauthService.finish(token)
+            .flatMap(oauthCred -> userService.saveCredential(oauthCred))
+            .map(uuid -> "/oauth/uuid?identifier=" + uuid)
+            .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));
+    }
 }

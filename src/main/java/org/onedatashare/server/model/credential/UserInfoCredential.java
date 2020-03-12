@@ -2,6 +2,7 @@ package org.onedatashare.server.model.credential;
 
 import lombok.Data;
 import org.onedatashare.server.model.core.Credential;
+import org.onedatashare.server.model.core.EndpointType;
 import org.onedatashare.server.model.useraction.UserActionCredential;
 import org.springframework.data.annotation.Transient;
 
@@ -12,7 +13,7 @@ public class UserInfoCredential extends Credential {
   private String password;
 
   public UserInfoCredential(String username, String password) {
-    this.type = CredentialType.USERINFO;
+    this.type = EndpointType.FTP;
     this.username = username;
     this.password = password;
   }

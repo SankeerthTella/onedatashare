@@ -94,7 +94,7 @@ public class GoogleDriveOauthService{
             String userId = service.about().get().setFields("user").execute().getUser().getEmailAddress();
 
             oauth.name = "GoogleDrive: " + userId;
-            return userService.getCredentials(cookie).flatMap(val -> {
+            return userService.getCredentials().flatMap(val -> {
                 for (Credential value : val.values()) {
                     OAuthCredential oauthVal = ((OAuthCredential) value);
                     if ((oauthVal.name != null && oauthVal.name.equals(oauth.name))) { //Checks if the ID already matches

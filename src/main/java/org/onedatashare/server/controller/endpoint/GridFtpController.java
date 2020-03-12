@@ -60,7 +60,7 @@ public class GridFtpController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Rendering completeOauthOperation(Map<String, String> queryParameters) {
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
         return null;
     }
 }

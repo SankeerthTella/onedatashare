@@ -5,16 +5,17 @@ import org.onedatashare.server.model.request.OperationRequestData;
 import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.service.DbxService;
-import org.onedatashare.server.service.oauth.DbxOauthService;
+import org.onedatashare.server.service.ODSLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Map;
 
 @Controller
@@ -22,15 +23,6 @@ import java.util.Map;
 public class DbxController extends OAuthEndpointBaseController{
     @Autowired
     private DbxService dbxService;
-
-    @Autowired
-    private DbxOauthService dbxOauthService;
-
-
-    @GetMapping("/a")
-    public Rendering oauth(){
-        return Rendering.redirectTo(dbxOauthService.start()).build();
-    }
 
     @Override
     protected Mono<Stat> listOperation(RequestData requestData) {
@@ -63,11 +55,30 @@ public class DbxController extends OAuthEndpointBaseController{
 
     @Override
     protected Rendering initiateOauthOperation() {
-        return this.redirectTo(dbxOauthService.start());
+        return Rendering.redirectTo(dbxService.getOAuthUrl2()).build();
+    }
+
+    protected Mono<Rendering> handleOAuthError(String type, String errorDescription){
+        return Mono.fromSupplier(() -> {
+            StringBuilder errorStringBuilder = new StringBuilder();
+            try{
+                errorStringBuilder.append(URLEncoder.encode(errorDescription, "UTF-8"));
+                errorStringBuilder.insert(0, "?error=");
+            } catch (UnsupportedEncodingException e) {
+                ODSLoggerService.logError(errorDescription);
+            }
+            return Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build();
+        });
     }
 
     @Override
-    protected Rendering completeOauthOperation(Map<String, String> queryParameters) {
-        return null;
+    protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
+        String code = queryParameters.get("code");
+        if (code == null) {
+            return handleOAuthError("", queryParameters.getOrDefault("error_description", "Unknown error"));
+        }
+        else {
+            return dbxService.completeOAuth(code).map(this::redirectTo);
+        }
     }
 }

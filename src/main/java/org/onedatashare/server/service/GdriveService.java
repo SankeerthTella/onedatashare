@@ -99,11 +99,6 @@ public class GdriveService extends ResourceService {
     }
 
     @Override
-    public Mono<Job> submit(String cookie, UserAction userAction) {
-        return null;
-    }
-
-    @Override
     public Mono<String> download(String cookie, UserAction userAction) {
         return getResourceWithUserActionUri(cookie, userAction)
                 .flatMap(Resource::download);

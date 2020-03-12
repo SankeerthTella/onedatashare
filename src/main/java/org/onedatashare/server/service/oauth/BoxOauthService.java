@@ -74,7 +74,7 @@ public class BoxOauthService {
         oauth.lastRefresh = new Date(currentTime.getTime());
         oauth.expiredTime = new Date(currentTime.getTime() + client.getExpires());
         try{
-            return userService.getCredentials(cookie).flatMap(val -> {
+            return userService.getCredentials().flatMap(val -> {
                 for (Credential value : val.values()) {
                     OAuthCredential oauthVal = ((OAuthCredential) value);
                     if ((oauthVal.name != null && oauthVal.name.equals(oauth.name))) { //Checks if the ID already matches

@@ -99,7 +99,7 @@ public class UserService {
 
     public GlobusClient getGlobusClientFromUser(User user){
         for (Credential credential : user.getCredentials().values()) {
-            if (credential.type == Credential.CredentialType.OAUTH) {
+            if (credential.type == EndpointType.GRIDFTP) {
                 OAuthCredential oaucr = (OAuthCredential) credential;
                 if (oaucr.name.contains("GridFTP")) {
                     return new GlobusClient(oaucr.token);
@@ -112,21 +112,6 @@ public class UserService {
     public Mono<GlobusClient> getGlobusClient(String cookie){
         return getLoggedInUser(cookie)
                 .map(user -> getGlobusClientFromUser(user));
-    }
-
-    public Mono<GlobusClient> getClient(String cookie){
-        return getLoggedInUser(cookie)
-                .map(user -> {
-                    for (Credential credential : user.getCredentials().values()) {
-                        if (credential.type == Credential.CredentialType.OAUTH) {
-                            OAuthCredential oaucr = (OAuthCredential) credential;
-                            if (oaucr.name.contains("GridFTP")) {
-                                return new GlobusClient(oaucr.token);
-                            }
-                        }
-                    }
-                    return new GlobusClient();
-                });
     }
 
     public Mono<Boolean> resetPassword(String email, String password, String passwordConfirm, String authToken){
@@ -336,10 +321,9 @@ public class UserService {
      * //TODO: remove this function
      * Modified the function to use the security context
      * Placeholder function that will be removed later
-     * @param cookie - Unused parameter (to be removed)
      * @return
      */
-    public Mono<User> getLoggedInUser(String cookie) {
+    public Mono<User> getLoggedInUser() {
         return getLoggedInUser();
     }
 
@@ -347,7 +331,7 @@ public class UserService {
      * Modified the function to use security context for logging in
      * @return User : The current logged in user
      */
-    public Mono<User> getLoggedInUser() {
+    public Mono<User> getLoggedInUser(String cookie) {
         return getLoggedInUserEmail()
                 .flatMap(this::getUser);
     }
@@ -363,9 +347,9 @@ public class UserService {
                 .map(securityContext -> (String) securityContext.getAuthentication().getPrincipal());
     }
 
-    public Mono<UUID> saveCredential(String cookie, OAuthCredential credential) {
+    public Mono<UUID> saveCredential(OAuthCredential credential) {
         final UUID uuid = UUID.randomUUID();
-        return  getLoggedInUser(cookie)
+        return getLoggedInUser()
                 .map(user -> {
                     user.getCredentials().put(uuid, credential);
                     return user;
@@ -376,12 +360,11 @@ public class UserService {
 
     /**
      * Saves the OAuth Credentials in user collection when the user toggles the preference button.
-     * @param cookie Browser cookie string passed in the HTTP request to the controller
      * @param credentials The list of Oauth Credentials
      * @return
      */
-    public Mono<Void> saveUserCredentials(String cookie, List<OAuthCredential> credentials) {
-        return getLoggedInUser(cookie)
+    public Mono<Void> saveUserCredentials(List<OAuthCredential> credentials) {
+        return getLoggedInUser()
                 .map(user -> {
                     for(OAuthCredential credential : credentials) {
                         final UUID uuid = UUID.randomUUID();
@@ -400,7 +383,7 @@ public class UserService {
     }
 
     public Mono<Long> getLastActivity(String cookie) {
-        return getLoggedInUser(cookie).map(user ->user.getLastActivity());
+        return getLoggedInUser(cookie).map(user -> user.getLastActivity());
     }
 
 
@@ -468,7 +451,7 @@ public class UserService {
     public Mono<Void> updateSaveOAuth(String cookie, boolean saveOAuthCredentials){
         return getLoggedInUser(cookie).map(user -> {
             user.setSaveOAuthTokens(saveOAuthCredentials);
-// Remove the saved credentials
+            // Remove the saved credentials
             if(!saveOAuthCredentials)
                 user.setCredentials(new HashMap<>());
             return userRepository.save(user).subscribe();
@@ -482,19 +465,21 @@ public class UserService {
     /**
      * Service method that retrieves all existing credentials linked to a user account.
      *
-     * @param cookie - Browser cookie string passed in the HTTP request to the controller
      * @return a map containing all the endpoint credentials linked to the user account as a Mono
      */
-    public Mono<Map<UUID, Credential>> getCredentials(String cookie) {
-        return getLoggedInUser(cookie).map(User::getCredentials).map(
-                credentials -> removeIfExpired(credentials)).flatMap(creds -> saveCredToUser(creds, cookie));
+    public Mono<Map<UUID, Credential>> getCredentials() {
+        return getLoggedInUser()
+                .map(user -> {
+                    removeIfExpired(user.getCredentials());
+                    userRepository.save(user).subscribe();
+                    return user.getCredentials();
+                });
     }
-
 
     public Map<UUID, Credential> removeIfExpired(Map<UUID, Credential> creds){
         ArrayList<UUID> removingThese = new ArrayList<UUID>();
         for(Map.Entry<UUID, Credential> entry : creds.entrySet()){
-            if(entry.getValue().type == Credential.CredentialType.OAUTH &&
+            if(entry.getValue().type == EndpointType.GRIDFTP &&
                     ((OAuthCredential)entry.getValue()).name.equals("GridFTP Client") &&
                     ((OAuthCredential)entry.getValue()).expiredTime != null &&
                     Calendar.getInstance().getTime().after(((OAuthCredential)entry.getValue()).expiredTime))
@@ -508,19 +493,8 @@ public class UserService {
         return creds;
     }
 
-    public Mono<Map<UUID, Credential>> saveCredToUser(Map<UUID, Credential> creds, String cookie){
-        return getLoggedInUser(cookie).map(user -> {
-            if(user.isSaveOAuthTokens())
-                user.setCredentials(creds);
-            return userRepository.save(user);
-        }).flatMap(repo -> repo.map(user -> user.getCredentials()));
-    }
 
     public Flux<UUID> getJobs(String cookie) {
         return getLoggedInUser(cookie).map(User::getJobs).flux().flatMap(Flux::fromIterable);
-    }
-
-    public Mono<User> addJob(Job job, String cookie) {
-        return getLoggedInUser(cookie).map(user -> user.addJob(job.getUuid())).flatMap(userRepository::save);
     }
 }
