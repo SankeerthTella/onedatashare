@@ -44,7 +44,7 @@ public class DbxOauthService  {
     private String oAuthUrl;
 
     @PostConstruct
-    private void postConstructInit() throws Exception{
+    private void postConstructInit(){
         secrets = new DbxAppInfo(dbxConfig.clientId, dbxConfig.clientSecret);
         config = DbxRequestConfig.newBuilder(dbxConfig.identifier).build();
         sessionStore = new DbxSessionStore() {
@@ -83,5 +83,4 @@ public class DbxOauthService  {
             throw new RuntimeException(e);
         }
     }
-
 }

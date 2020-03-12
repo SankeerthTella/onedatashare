@@ -32,6 +32,7 @@ public class CredController {
    * @return a map containing all the endpoint credentials linked to the user account as a Mono
    */
   @GetMapping
+  //TODO: modify this function to return the credentials only of the requested type
   public Mono<Map<UUID, Credential>> listCredentials() {
     return userService.getCredentials();
   }
@@ -42,6 +43,7 @@ public class CredController {
    * @param credentials - List of Credentials to save
    * @return
    */
+  //TODO: remove
   @PostMapping("/saveCredentials")
   public Mono<Void> saveCredentials(@RequestBody List<OAuthCredential> credentials){
     return userService.saveUserCredentials(credentials);

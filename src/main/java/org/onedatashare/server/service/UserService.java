@@ -323,7 +323,7 @@ public class UserService {
      * Placeholder function that will be removed later
      * @return
      */
-    public Mono<User> getLoggedInUser() {
+    public Mono<User> getLoggedInUser(String cookie) {
         return getLoggedInUser();
     }
 
@@ -331,7 +331,7 @@ public class UserService {
      * Modified the function to use security context for logging in
      * @return User : The current logged in user
      */
-    public Mono<User> getLoggedInUser(String cookie) {
+    public Mono<User> getLoggedInUser() {
         return getLoggedInUserEmail()
                 .flatMap(this::getUser);
     }
