@@ -42,6 +42,8 @@ public class DbxOauthService  {
     private DbxWebAuth auth;
     private String token = null;
 
+    private static final String STATE = "state", CODE = "code";
+
     @PostConstruct
     private void postConstructInit(){
         secrets = new DbxAppInfo(dbxConfig.key, dbxConfig.secret);
@@ -67,8 +69,8 @@ public class DbxOauthService  {
 
     public Mono<OAuthCredential> finish(Map<String, String> queryParameters) {
         Map<String,String[]> map = new HashMap();
-        map.put("state", new String[] {queryParameters.get("state")});
-        map.put("code", new String[] {queryParameters.get("code")});
+        map.put("state", new String[] {queryParameters.get(STATE)});
+        map.put("code", new String[] {queryParameters.get(CODE)});
         try {
             DbxAuthFinish finish = auth.finishFromRedirect(dbxConfig.redirectUri, sessionStore, map);
             OAuthCredential cred = new OAuthCredential(finish.getAccessToken());
