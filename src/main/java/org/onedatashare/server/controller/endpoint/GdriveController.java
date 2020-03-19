@@ -56,8 +56,8 @@ public class GdriveController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Rendering initiateOauthOperation() {
-        return this.redirectTo(googleDriveOauthService.start());
+    protected Mono<Rendering> initiateOauthOperation() {
+        return null; //this.redirectTo(googleDriveOauthService.start());
     }
 
     @Override

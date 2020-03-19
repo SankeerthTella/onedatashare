@@ -15,6 +15,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -98,12 +99,8 @@ public class DbxService extends OAuthResourceService{
         return Mono.fromSupplier(() -> dbxOauthService.start());
     }
 
-    public String getOAuthUrl2(){
-        return dbxOauthService.start();
-    }
-    @Override
-    public Mono<String> completeOAuth(String token) {
-        return dbxOauthService.finish(token)
+    public Mono<String> completeOAuth(Map<String, String> queryParameters) {
+        return dbxOauthService.finish(queryParameters.get("code"), queryParameters.get("state"))
             .flatMap(oauthCred -> userService.saveCredential(oauthCred))
             .map(uuid -> "/oauth/uuid?identifier=" + uuid)
             .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));

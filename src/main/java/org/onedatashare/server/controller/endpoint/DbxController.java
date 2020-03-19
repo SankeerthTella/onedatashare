@@ -54,31 +54,17 @@ public class DbxController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Rendering initiateOauthOperation() {
-        return Rendering.redirectTo(dbxService.getOAuthUrl2()).build();
-    }
-
-    protected Mono<Rendering> handleOAuthError(String type, String errorDescription){
-        return Mono.fromSupplier(() -> {
-            StringBuilder errorStringBuilder = new StringBuilder();
-            try{
-                errorStringBuilder.append(URLEncoder.encode(errorDescription, "UTF-8"));
-                errorStringBuilder.insert(0, "?error=");
-            } catch (UnsupportedEncodingException e) {
-                ODSLoggerService.logError(errorDescription);
-            }
-            return Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build();
-        });
+    protected Mono<Rendering> initiateOauthOperation() {
+        return dbxService.getOAuthUrl().map(this::redirectTo).log();
     }
 
     @Override
     protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
-        String code = queryParameters.get("code");
-        if (code == null) {
-            return handleOAuthError("", queryParameters.getOrDefault("error_description", "Unknown error"));
+        if (queryParameters.get("code") == null || queryParameters.get("state") == null) {
+            return this.handleOAuthError("", queryParameters.getOrDefault("error_description", "Unknown error"));
         }
         else {
-            return dbxService.completeOAuth(code).map(this::redirectTo);
+            return dbxService.completeOAuth(queryParameters).map(this::redirectTo);
         }
     }
 }

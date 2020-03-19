@@ -55,8 +55,8 @@ public class GridFtpController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Rendering initiateOauthOperation() {
-        return this.redirectTo(gridftpAuthService.start());
+    protected Mono<Rendering> initiateOauthOperation() {
+        return null;//this.redirectTo(gridftpAuthService.start());
     }
 
     @Override

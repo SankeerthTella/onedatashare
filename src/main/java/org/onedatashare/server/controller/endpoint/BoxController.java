@@ -55,8 +55,9 @@ public class BoxController extends OAuthEndpointBaseController{
     }
 
     @Override
-    protected Rendering initiateOauthOperation() {
-        return this.redirectTo(boxOauthService.start());
+    protected Mono<Rendering> initiateOauthOperation() {
+        return null;
+        //return this.redirectTo(boxOauthService.start());
     }
 
     @Override

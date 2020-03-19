@@ -41,7 +41,6 @@ public class DbxOauthService  {
     private DbxSessionStore sessionStore;
     private DbxWebAuth auth;
     private String token = null;
-//    private String oAuthUrl;
 
     @PostConstruct
     private void postConstructInit(){
@@ -56,12 +55,6 @@ public class DbxOauthService  {
         };
 
         auth = new DbxWebAuth(config, secrets);
-//        // Authorize the DbxWebAuth auth as well as redirect the user to the finishURI, done this way to appease OAuth 2.0
-//        oAuthUrl = auth.authorize(DbxWebAuth
-//                .Request
-//                .newBuilder()
-//                .withRedirectUri(dbxConfig.redirectUri, sessionStore)
-//                .build());
     }
 
     public String start(){
@@ -72,9 +65,9 @@ public class DbxOauthService  {
                 .build());
     }
 
-    public Mono<OAuthCredential> finish(String token) {
+    public Mono<OAuthCredential> finish(String token, String state) {
         Map<String,String[]> map = new HashMap();
-        map.put("state", new String[] {dbxConfig.key});
+        map.put("state", new String[] {state});
         map.put("code", new String[] {token});
         try {
             DbxAuthFinish finish = auth.finishFromRedirect(dbxConfig.redirectUri, sessionStore, map);

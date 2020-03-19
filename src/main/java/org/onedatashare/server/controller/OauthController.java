@@ -97,47 +97,47 @@ public class OauthController {
                 });
     }
 
-    /**
-     * Handler for google drive oauth requests
-     * @param queryParameters - Query parameters
-     * @return Mono\<String\>
-     */
-    @GetMapping(value = "/dropbox")
-    public Object dropboxOauthFinish(@RequestParam Map<String, String> queryParameters) {
-        if (!queryParameters.containsKey("code")) {
-            StringBuilder errorStringBuilder = new StringBuilder();
-            if (queryParameters.containsKey("error_description")) {
-                try {
-                    errorStringBuilder.append(URLEncoder.encode(queryParameters.get("error_description"), "UTF-8"));
-                    errorStringBuilder.insert(0, "?error=");
-                } catch (UnsupportedEncodingException e) {
-                    ODSLoggerService.logError("Invalid error message received from DropBox " +
-                            "oauth after cancellation" + queryParameters.get("error_description"));
-                }
-            }
-            return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
-        }
-
-        return userService.getLoggedInUser().flatMap(user -> {
-            if (user.isSaveOAuthTokens())
-                return dbxOauthService.finish(queryParameters.get("code"))
-                        .flatMap(oauthCred -> userService.saveCredential(oauthCred))
-                        .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
-                        .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredDropbox").build()));
-            else
-                return dbxOauthService.finish(queryParameters.get("code"))
-                        .map(oAuthCredential -> {
-                            try {
-                                return "/oauth/dropbox?creds=" + URLEncoder.encode(objectMapper.writeValueAsString(oAuthCredential), StandardCharsets.UTF_8.toString());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        })
-                        .map(oauthCred -> Rendering.redirectTo(oauthCred).build())
-                        .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredDropbox").build()));
-        });
-    }
+//    /**
+//     * Handler for google drive oauth requests
+//     * @param queryParameters - Query parameters
+//     * @return Mono\<String\>
+//     */
+//    @GetMapping(value = "/dropbox")
+//    public Object dropboxOauthFinish(@RequestParam Map<String, String> queryParameters) {
+//        if (!queryParameters.containsKey("code")) {
+//            StringBuilder errorStringBuilder = new StringBuilder();
+//            if (queryParameters.containsKey("error_description")) {
+//                try {
+//                    errorStringBuilder.append(URLEncoder.encode(queryParameters.get("error_description"), "UTF-8"));
+//                    errorStringBuilder.insert(0, "?error=");
+//                } catch (UnsupportedEncodingException e) {
+//                    ODSLoggerService.logError("Invalid error message received from DropBox " +
+//                            "oauth after cancellation" + queryParameters.get("error_description"));
+//                }
+//            }
+//            return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
+//        }
+//
+//        return userService.getLoggedInUser().flatMap(user -> {
+//            if (user.isSaveOAuthTokens())
+//                return dbxOauthService.finish(queryParameters.get("code"))
+//                        .flatMap(oauthCred -> userService.saveCredential(oauthCred))
+//                        .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
+//                        .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredDropbox").build()));
+//            else
+//                return dbxOauthService.finish(queryParameters.get("code"))
+//                        .map(oAuthCredential -> {
+//                            try {
+//                                return "/oauth/dropbox?creds=" + URLEncoder.encode(objectMapper.writeValueAsString(oAuthCredential), StandardCharsets.UTF_8.toString());
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                            return null;
+//                        })
+//                        .map(oauthCred -> Rendering.redirectTo(oauthCred).build())
+//                        .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredDropbox").build()));
+//        });
+//    }
 
     /**
      * Handler for GridFTP requests
