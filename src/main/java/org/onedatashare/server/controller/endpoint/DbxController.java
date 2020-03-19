@@ -60,7 +60,7 @@ public class DbxController extends OAuthEndpointBaseController{
 
     @Override
     protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
-        if (queryParameters.get("code") == null || queryParameters.get("state") == null) {
+        if (queryParameters.get("code") == null) {
             return this.handleOAuthError("", queryParameters.getOrDefault("error_description", "Unknown error"));
         }
         else {
