@@ -1,45 +1,30 @@
 package org.onedatashare.server.service;
 
-import org.onedatashare.module.globusapi.GlobusClient;
 import org.onedatashare.server.model.core.*;
-import org.onedatashare.server.model.credential.GlobusWebClientCredential;
 import org.onedatashare.server.model.credential.OAuthCredential;
-import org.onedatashare.server.model.credential.UploadCredential;
-import org.onedatashare.server.model.credential.UserInfoCredential;
-import org.onedatashare.server.model.error.AuthenticationRequired;
-import org.onedatashare.server.model.error.NotFoundException;
 import org.onedatashare.server.model.error.TokenExpiredException;
 import org.onedatashare.server.model.useraction.IdMap;
 import org.onedatashare.server.model.useraction.UserAction;
-import org.onedatashare.server.model.useraction.UserActionResource;
-import org.onedatashare.server.module.box.BoxSession;
-import org.onedatashare.server.module.clientupload.ClientUploadSession;
-import org.onedatashare.server.module.dropbox.DbxSession;
 import org.onedatashare.server.module.googledrive.GoogleDriveSession;
-import org.onedatashare.server.module.gridftp.GridftpSession;
-import org.onedatashare.server.module.http.HttpSession;
-import org.onedatashare.server.module.vfs.VfsSession;
+import org.onedatashare.server.service.oauth.GDriveOauthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SynchronousSink;
-import reactor.core.scheduler.Schedulers;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.onedatashare.server.model.core.ODSConstants.*;
 
 @Service
-public class GdriveService extends ResourceService {
+public class GDriveService extends OAuthResourceService {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private GDriveOauthService gDriveOauthService;
 
     public Mono<? extends Resource> getResourceWithUserActionUri(String cookie, UserAction userAction) {
         final String path = pathFromUri(userAction.getUri());
@@ -102,5 +87,18 @@ public class GdriveService extends ResourceService {
     public Mono<String> download(String cookie, UserAction userAction) {
         return getResourceWithUserActionUri(cookie, userAction)
                 .flatMap(Resource::download);
+    }
+
+    @Override
+    public Mono<String> getOAuthUrl() {
+        return Mono.fromSupplier(() -> gDriveOauthService.start());
+    }
+
+    @Override
+    public Mono<String> completeOAuth(Map<String, String> queryParameters) {
+        return Mono.fromSupplier(() -> gDriveOauthService.finish(queryParameters))
+                .flatMap(oauthCred -> userService.saveCredential(oauthCred))
+                .map(uuid -> "/oauth/uuid?identifier=" + uuid)
+                .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));
     }
 }

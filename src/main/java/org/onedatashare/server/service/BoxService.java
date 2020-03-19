@@ -10,6 +10,7 @@ import org.onedatashare.server.model.useraction.IdMap;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.module.box.BoxResource;
 import org.onedatashare.server.module.box.BoxSession;
+import org.onedatashare.server.service.oauth.BoxOauthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -21,10 +22,13 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class BoxService extends ResourceService {
+public class BoxService extends OAuthResourceService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private BoxOauthService boxOauthService;
 
     @Override
     public Mono<Stat> list(String cookie, UserAction userAction) {
@@ -86,6 +90,18 @@ public class BoxService extends ResourceService {
             e.printStackTrace();
         }
         return path;
-        }
     }
+
+    @Override
+    public Mono<String> getOAuthUrl() {
+        return Mono.fromSupplier(() -> boxOauthService.start());
+    }
+
+    @Override
+    public Mono<String> completeOAuth(Map<String, String> queryParameters) {
+        return Mono.fromSupplier(() -> boxOauthService.finish(queryParameters))
+                .map(uuid -> "/oauth/uuid?identifier=" + uuid)
+                .switchIfEmpty(Mono.just("/oauth/ExistingCredBox"));
+    }
+}
 

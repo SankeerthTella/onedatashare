@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.beans.ConstructorProperties;
 import java.util.Date;
+import java.util.Map;
 
 /**
  *author: Javier Falca
@@ -56,12 +57,12 @@ public class BoxOauthService {
     }
 
     /**
-     * @param code: Access Token returned by Box Authentication using OAuth 2
+     * @param queryParameters: Access Token returned by Box Authentication using OAuth 2
      * @return OAuthCredential
      */
 
-    public Mono<OAuthCredential> finish(String code, String cookie) {
-
+    public Mono<OAuthCredential> finish(Map<String, String> queryParameters) {
+        String code = queryParameters.get("code");
         // Instantiate new Box API connection object
         BoxAPIConnection client = new BoxAPIConnection(boxConfig.client_id, boxConfig.client_secret, code);
         OAuthCredential oauth = new OAuthCredential(client.getAccessToken());

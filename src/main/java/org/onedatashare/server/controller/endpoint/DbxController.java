@@ -5,7 +5,6 @@ import org.onedatashare.server.model.request.OperationRequestData;
 import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.service.DbxService;
-import org.onedatashare.server.service.ODSLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,8 +13,6 @@ import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Map;
 
 @Controller
@@ -55,7 +52,7 @@ public class DbxController extends OAuthEndpointBaseController{
 
     @Override
     protected Mono<Rendering> initiateOauthOperation() {
-        return dbxService.getOAuthUrl().map(this::redirectTo).log();
+        return dbxService.getOAuthUrl().map(this::redirectTo);
     }
 
     @Override

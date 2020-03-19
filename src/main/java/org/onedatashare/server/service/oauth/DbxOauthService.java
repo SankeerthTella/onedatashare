@@ -69,8 +69,8 @@ public class DbxOauthService  {
 
     public Mono<OAuthCredential> finish(Map<String, String> queryParameters) {
         Map<String,String[]> map = new HashMap();
-        map.put("state", new String[] {queryParameters.get(STATE)});
-        map.put("code", new String[] {queryParameters.get(CODE)});
+        map.put(STATE, new String[] {queryParameters.get(STATE)});
+        map.put(CODE, new String[] {queryParameters.get(CODE)});
         try {
             DbxAuthFinish finish = auth.finishFromRedirect(dbxConfig.redirectUri, sessionStore, map);
             OAuthCredential cred = new OAuthCredential(finish.getAccessToken());

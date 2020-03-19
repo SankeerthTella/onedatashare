@@ -31,7 +31,7 @@ public class OauthController {
     public UserService userService;
 
     @Autowired
-    private GoogleDriveOauthService googleDriveOauthService;
+    private GDriveOauthService gDriveOauthService;
 
     @Autowired
     private DbxOauthService dbxOauthService;
@@ -55,47 +55,47 @@ public class OauthController {
      * @param queryParameters - Query parameters
      * @return Mono\<String\>
      */
-    @GetMapping(value = "/googledrive")
-    public Object googledriveOauthFinish(@RequestHeader HttpHeaders headers, @RequestParam Map<String, String> queryParameters) {
-        String cookie = headers.getFirst(ODSConstants.COOKIE);
-
-        if (!queryParameters.containsKey("code")) {
-            StringBuilder errorStringBuilder = new StringBuilder();
-            if (queryParameters.containsKey("error")) {
-                try {
-                    errorStringBuilder.append(URLEncoder.encode(queryParameters.get("error"), "UTF-8"));
-                    errorStringBuilder.insert(0, "?error=");
-                } catch (UnsupportedEncodingException e) {
-                    ODSLoggerService.logError("Invalid error message received from Google Drive " +
-                            "oauth after cancellation" + queryParameters.get("error_description"));
-                }
-            }
-            return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
-        }
-
-        return userService.getLoggedInUser(cookie)
-                .flatMap(user -> {
-                    if (user.isSaveOAuthTokens()) {
-                        return googleDriveOauthService.finish(queryParameters.get("code"), cookie)
-                                .flatMap(oAuthCred -> userService.saveCredential(oAuthCred))
-                                .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
-                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredGoogleDrive").build()));
-                    } else {
-                        return googleDriveOauthService.finish(queryParameters.get("code"), cookie)
-                                .map(oAuthCred -> {
-                                    try {
-                                        return "/oauth/googledrive?creds=" +
-                                                URLEncoder.encode(objectMapper.writeValueAsString(oAuthCred), StandardCharsets.UTF_8.toString());
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                    return null;
-                                })
-                                .map(oAuthCredLink -> Rendering.redirectTo(oAuthCredLink).build())
-                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredGoogleDrive").build()));
-                    }
-                });
-    }
+//    @GetMapping(value = "/googledrive")
+//    public Object googledriveOauthFinish(@RequestHeader HttpHeaders headers, @RequestParam Map<String, String> queryParameters) {
+//        String cookie = headers.getFirst(ODSConstants.COOKIE);
+//
+//        if (!queryParameters.containsKey("code")) {
+//            StringBuilder errorStringBuilder = new StringBuilder();
+//            if (queryParameters.containsKey("error")) {
+//                try {
+//                    errorStringBuilder.append(URLEncoder.encode(queryParameters.get("error"), "UTF-8"));
+//                    errorStringBuilder.insert(0, "?error=");
+//                } catch (UnsupportedEncodingException e) {
+//                    ODSLoggerService.logError("Invalid error message received from Google Drive " +
+//                            "oauth after cancellation" + queryParameters.get("error_description"));
+//                }
+//            }
+//            return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
+//        }
+//
+//        return userService.getLoggedInUser(cookie)
+//                .flatMap(user -> {
+//                    if (user.isSaveOAuthTokens()) {
+//                        return gDriveOauthService.finish(queryParameters.get("code"), cookie)
+//                                .flatMap(oAuthCred -> userService.saveCredential(oAuthCred))
+//                                .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
+//                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredGoogleDrive").build()));
+//                    } else {
+//                        return gDriveOauthService.finish(queryParameters.get("code"), cookie)
+//                                .map(oAuthCred -> {
+//                                    try {
+//                                        return "/oauth/googledrive?creds=" +
+//                                                URLEncoder.encode(objectMapper.writeValueAsString(oAuthCred), StandardCharsets.UTF_8.toString());
+//                                    } catch (IOException e) {
+//                                        e.printStackTrace();
+//                                    }
+//                                    return null;
+//                                })
+//                                .map(oAuthCredLink -> Rendering.redirectTo(oAuthCredLink).build())
+//                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredGoogleDrive").build()));
+//                    }
+//                });
+//    }
 
 //    /**
 //     * Handler for google drive oauth requests
@@ -152,52 +152,52 @@ public class OauthController {
                 .map(uuid -> Rendering.redirectTo("/oauth/" + uuid).build());
     }
 
-    /**
-     * Handler for Box requests
-     * @param headers - Incoming request headers
-     * @param queryParameters - Query parameters
-     * @return Mono\<String\>
-     */
-    @GetMapping(value = "/box")
-    public Object boxOauthFinish(@RequestHeader HttpHeaders headers, @RequestParam Map<String, String> queryParameters){
-        String cookie = headers.getFirst(ODSConstants.COOKIE);
-        if (!queryParameters.containsKey("code")) {
-            StringBuilder errorStringBuilder = new StringBuilder();
-            if (queryParameters.containsKey("error")) {
-                try {
-                    errorStringBuilder.append(URLEncoder.encode(queryParameters.get("error"), "UTF-8"));
-                    errorStringBuilder.insert(0, "?error=");
-                } catch (UnsupportedEncodingException e) {
-                    ODSLoggerService.logError("Invalid error message received from Google Drive " +
-                            "oauth after cancellation" + queryParameters.get("error_description"));
-                }
-            }
-            return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
-        }
-
-        return userService.getLoggedInUser(cookie)
-                .flatMap(user -> {
-                    if (user.isSaveOAuthTokens()) {
-                        return boxOauthService.finish(queryParameters.get("code"), cookie)
-                                .flatMap(oAuthCred -> userService.saveCredential(oAuthCred))
-                                .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
-                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredBox").build()));
-                    } else {
-                        return boxOauthService.finish(queryParameters.get("code"), cookie)
-                                .map(oAuthCred -> {
-                                    try {
-                                        return "/oauth/box?creds=" +
-                                                URLEncoder.encode(objectMapper.writeValueAsString(oAuthCred), StandardCharsets.UTF_8.toString());
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                    return null;
-                                })
-                                .map(oAuthCredLink -> Rendering.redirectTo(oAuthCredLink).build())
-                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredBox").build()));
-                    }
-                });
-    }
+//    /**
+//     * Handler for Box requests
+//     * @param headers - Incoming request headers
+//     * @param queryParameters - Query parameters
+//     * @return Mono\<String\>
+//     */
+//    @GetMapping(value = "/box")
+//    public Object boxOauthFinish(@RequestHeader HttpHeaders headers, @RequestParam Map<String, String> queryParameters){
+//        String cookie = headers.getFirst(ODSConstants.COOKIE);
+//        if (!queryParameters.containsKey("code")) {
+//            StringBuilder errorStringBuilder = new StringBuilder();
+//            if (queryParameters.containsKey("error")) {
+//                try {
+//                    errorStringBuilder.append(URLEncoder.encode(queryParameters.get("error"), "UTF-8"));
+//                    errorStringBuilder.insert(0, "?error=");
+//                } catch (UnsupportedEncodingException e) {
+//                    ODSLoggerService.logError("Invalid error message received from Google Drive " +
+//                            "oauth after cancellation" + queryParameters.get("error_description"));
+//                }
+//            }
+//            return Mono.just(Rendering.redirectTo("/transfer" + errorStringBuilder.toString()).build());
+//        }
+//
+//        return userService.getLoggedInUser(cookie)
+//                .flatMap(user -> {
+//                    if (user.isSaveOAuthTokens()) {
+//                        return boxOauthService.finish(queryParameters.get("code"), cookie)
+//                                .flatMap(oAuthCred -> userService.saveCredential(oAuthCred))
+//                                .map(uuid -> Rendering.redirectTo("/oauth/uuid?identifier=" + uuid).build())
+//                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredBox").build()));
+//                    } else {
+//                        return boxOauthService.finish(queryParameters.get("code"), cookie)
+//                                .map(oAuthCred -> {
+//                                    try {
+//                                        return "/oauth/box?creds=" +
+//                                                URLEncoder.encode(objectMapper.writeValueAsString(oAuthCred), StandardCharsets.UTF_8.toString());
+//                                    } catch (IOException e) {
+//                                        e.printStackTrace();
+//                                    }
+//                                    return null;
+//                                })
+//                                .map(oAuthCredLink -> Rendering.redirectTo(oAuthCredLink).build())
+//                                .switchIfEmpty(Mono.just(Rendering.redirectTo("/oauth/ExistingCredBox").build()));
+//                    }
+//                });
+//    }
 
     @GetMapping
     //TODO: delete
@@ -209,7 +209,7 @@ public class OauthController {
             case dropbox:
                 return Rendering.redirectTo(dbxOauthService.start()). build();
             case googledrive:
-                return Rendering.redirectTo(googleDriveOauthService.start()).build();
+                return Rendering.redirectTo(gDriveOauthService.start()).build();
             case gridftp:
                 return Rendering.redirectTo(gridftpAuthService.start()).build();
             default:
