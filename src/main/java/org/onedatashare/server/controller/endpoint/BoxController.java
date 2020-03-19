@@ -22,9 +22,6 @@ public class BoxController extends OAuthEndpointBaseController{
     @Autowired
     private BoxService boxService;
 
-    @Autowired
-    private BoxOauthService boxOauthService;
-
     @Override
     protected Mono<Stat> listOperation(RequestData requestData) {
         UserAction userAction = UserAction.convertToUserAction(requestData);
@@ -61,7 +58,6 @@ public class BoxController extends OAuthEndpointBaseController{
 
     @Override
     protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
-        return null;
+        return boxService.completeOAuth(queryParameters).map(this::redirectTo);
     }
-
 }

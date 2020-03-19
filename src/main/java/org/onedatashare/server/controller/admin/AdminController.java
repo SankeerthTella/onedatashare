@@ -1,4 +1,4 @@
-package org.onedatashare.server.controller;
+package org.onedatashare.server.controller.admin;
 
 import com.amazonaws.services.simpleemail.model.GetSendQuotaResult;
 import org.onedatashare.server.model.core.Mail;

@@ -20,16 +20,16 @@ import java.util.List;
 @Data
 public class GoogleDriveConfig {
 
-    @Value("${drive.auth.uri}")
+    @Value("${drive.authUri}")
     private String authUri;
 
-    @Value("${drive.token.uri}")
+    @Value("${drive.tokenUri}")
     private String tokenUri;
 
-    @Value("${drive.auth.provider.x509.cert.uri}")
+    @Value("${drive.authProviderUri}")
     private String authProviderX509CertUrl;
 
-    @Value("${drive.redirect.uri}")
+    @Value("${drive.redirectUri}")
     private String redirectUri;
 
     private String clientId, clientSecret, projectId;

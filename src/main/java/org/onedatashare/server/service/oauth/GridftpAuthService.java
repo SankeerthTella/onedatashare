@@ -1,31 +1,17 @@
 package org.onedatashare.server.service.oauth;
 
-import com.dropbox.core.*;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.users.FullAccount;
 import org.onedatashare.module.globusapi.GlobusClient;
-import org.onedatashare.server.model.core.Credential;
 import org.onedatashare.server.model.credential.OAuthCredential;
-import org.onedatashare.server.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.result.view.RedirectView;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class GridftpAuthService {
     private GlobusClient globusclient = new GlobusClient();
 
-    public synchronized String start() {
+    public String start() {
         try {
             // Authorize the DbxWebAuth auth as well as redirect the user to the finishURI, done this way to appease OAuth 2.0
             return globusclient.generateAuthURL().block();
@@ -34,7 +20,8 @@ public class GridftpAuthService {
         }
     }
 
-    public synchronized Mono<OAuthCredential> finish(String token) {
+    public Mono<OAuthCredential> finish(Map<String, String> queryParameters) {
+        String token = queryParameters.get("code");
         try {
             return globusclient.getAccessToken(token).map(
                     acctoken -> {

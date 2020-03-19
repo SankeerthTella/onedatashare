@@ -3,10 +3,8 @@ package org.onedatashare.server.service.oauth;
 import com.dropbox.core.*;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.users.FullAccount;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.onedatashare.server.model.credential.OAuthCredential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,8 +29,7 @@ class DbxConfig {
 
 
 @Service
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DbxOauthService  {
+public class DbxOauthService implements OAuthService  {
     @Autowired
     private DbxConfig dbxConfig;
 
@@ -67,7 +64,7 @@ public class DbxOauthService  {
                 .build());
     }
 
-    public Mono<OAuthCredential> finish(Map<String, String> queryParameters) {
+    public OAuthCredential finish(Map<String, String> queryParameters) {
         Map<String,String[]> map = new HashMap();
         map.put(STATE, new String[] {queryParameters.get(STATE)});
         map.put(CODE, new String[] {queryParameters.get(CODE)});
@@ -77,9 +74,8 @@ public class DbxOauthService  {
             FullAccount account = new DbxClientV2(config, finish.getAccessToken()).users().getCurrentAccount();
             cred.name = "Dropbox: " + account.getEmail();
             cred.dropboxID = account.getAccountId();
-            return Mono.just(cred);
+            return cred;
         } catch (Exception e) {
-//            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

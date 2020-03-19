@@ -100,6 +100,7 @@ public class BoxService extends OAuthResourceService {
     @Override
     public Mono<String> completeOAuth(Map<String, String> queryParameters) {
         return Mono.fromSupplier(() -> boxOauthService.finish(queryParameters))
+                .flatMap(oauthCred -> userService.saveCredential(oauthCred))
                 .map(uuid -> "/oauth/uuid?identifier=" + uuid)
                 .switchIfEmpty(Mono.just("/oauth/ExistingCredBox"));
     }

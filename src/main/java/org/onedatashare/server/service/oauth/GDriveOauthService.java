@@ -24,11 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class GDriveOauthService {
-
-    @Autowired
-    private UserService userService;
-
+public class GDriveOauthService implements OAuthService{
     @Autowired
     private GoogleDriveConfig driveConfig;
 
@@ -56,8 +52,6 @@ public class GDriveOauthService {
 
     public String start() {
         GoogleClientSecrets cs = driveConfig.getDriveClientSecrets();
-//        GoogleClientSecrets.Details dt = cs.getDetails();
-
         if (driveConfig.getRedirectUri() == null)
             throw new RuntimeException("Google Drive config missing");
         return getUrl();
