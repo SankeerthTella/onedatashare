@@ -13,7 +13,7 @@ public class UserInfoCredential extends Credential {
   private String password;
 
   public UserInfoCredential(String username, String password) {
-    this.type = EndpointType.FTP;
+    this.type = CredentialType.USERINFO;
     this.username = username;
     this.password = password;
   }

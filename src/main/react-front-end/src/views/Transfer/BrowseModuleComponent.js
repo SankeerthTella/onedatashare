@@ -98,7 +98,9 @@ export default class BrowseModuleComponent extends Component {
 	credentialTypeExistsThenDo = (containsType, succeed, failed) => {
 		this.setLoading(true);
 
-		if(store.getState().saveOAuthTokens){
+		//TODO: change
+		//Credentials are always stored in the backend now
+		if(store.getState().saveOAuthTokens || true){ //Added true
 			// If the user has opted to store tokens on ODS server,
 			// query backed for saved credentials
 			console.log("Checking backend for " + containsType + " credentials");
@@ -118,22 +120,22 @@ export default class BrowseModuleComponent extends Component {
 				this.setLoading(false);
 			});
 		}
-		else{
-			// If the user has opted not to store tokens on ODS server,
-			// query cookies for saved credentials
-			console.log("Checking cookies for " + containsType + " credentials");
+		// else{
+		// 	// If the user has opted not to store tokens on ODS server,
+		// 	// query cookies for saved credentials
+		// 	console.log("Checking cookies for " + containsType + " credentials");
 
-			let creds = cookies.get(containsType) || 0;
-			if(creds !== 0){
-				creds= JSON.parse(creds);
-				succeed(creds);
-				this.setLoading(false);
-			}
-			else{
-				failed();
-				this.setLoading(false);
-			}
-		}
+		// 	let creds = cookies.get(containsType) || 0;
+		// 	if(creds !== 0){
+		// 		creds= JSON.parse(creds);
+		// 		succeed(creds);
+		// 		this.setLoading(false);
+		// 	}
+		// 	else{
+		// 		failed();
+		// 		this.setLoading(false);
+		// 	}
+		// }
 	}
 
 	render() {

@@ -99,7 +99,7 @@ public class UserService {
 
     public GlobusClient getGlobusClientFromUser(User user){
         for (Credential credential : user.getCredentials().values()) {
-            if (credential.type == EndpointType.GRIDFTP) {
+            if (credential.type == Credential.CredentialType.GLOBUS) {
                 OAuthCredential oaucr = (OAuthCredential) credential;
                 if (oaucr.name.contains("GridFTP")) {
                     return new GlobusClient(oaucr.token);
@@ -333,7 +333,9 @@ public class UserService {
      */
     public Mono<User> getLoggedInUser() {
         return getLoggedInUserEmail()
-                .flatMap(this::getUser);
+                .doOnSuccess(x -> ODSLoggerService.logInfo(x))
+                    .flatMap(this::getUser)
+                .doOnSuccess(u -> ODSLoggerService.logInfo(u.toString()));
     }
 
 
@@ -352,10 +354,9 @@ public class UserService {
         return getLoggedInUser()
                 .map(user -> {
                     user.getCredentials().put(uuid, credential);
-                    return user;
-                })
-                .flatMap(userRepository::save)
-                .map(user -> uuid);
+                    userRepository.save(user).subscribe();
+                    return uuid;
+                });
     }
 
     /**
@@ -479,7 +480,7 @@ public class UserService {
     public Map<UUID, Credential> removeIfExpired(Map<UUID, Credential> creds){
         ArrayList<UUID> removingThese = new ArrayList<UUID>();
         for(Map.Entry<UUID, Credential> entry : creds.entrySet()){
-            if(entry.getValue().type == EndpointType.GRIDFTP &&
+            if(entry.getValue().type == Credential.CredentialType.GLOBUS &&
                     ((OAuthCredential)entry.getValue()).name.equals("GridFTP Client") &&
                     ((OAuthCredential)entry.getValue()).expiredTime != null &&
                     Calendar.getInstance().getTime().after(((OAuthCredential)entry.getValue()).expiredTime))

@@ -2,16 +2,16 @@ import React, { Component } from "react";
 
 import {
   transferPageUrl,
-  DROPBOX_TYPE,
-  sideLeft,
-  DROPBOX_NAME,
-  GOOGLEDRIVE_NAME,
-  GRIDFTP_NAME,
-  BOX_NAME
+  // DROPBOX_TYPE,
+  // sideLeft,
+  // DROPBOX_NAME,
+  // GOOGLEDRIVE_NAME,
+  // GRIDFTP_NAME,
+  // BOX_NAME
 } from "../constants";
 import { eventEmitter } from "../App";
-import { endpointLogin } from "../model/actions";
-import { cookies } from "../model/reducers";
+// import { endpointLogin } from "../model/actions";
+// import { cookies } from "../model/reducers";
 import Redirect from "react-router/es/Redirect";
 
 export default class OauthProcessComponent extends Component {
@@ -48,55 +48,55 @@ export default class OauthProcessComponent extends Component {
         "User has opted to save auth tokens at ODS servers. UUID received"
       );
       let qs = this.props.location.search;
-      let identifier = decodeURIComponent(qs.substring(qs.indexOf("=") + 1));
-      endpointLogin(DROPBOX_TYPE, sideLeft, { uuid: identifier });
+      // let identifier = decodeURIComponent(qs.substring(qs.indexOf("=") + 1));
+      // endpointLogin(DROPBOX_TYPE, sideLeft, { uuid: identifier });
     } else {
-      let qs = this.props.location.search;
-      let qsObj = JSON.parse(
-        decodeURIComponent(qs.substring(qs.indexOf("=") + 1))
-      );
+      // let qs = this.props.location.search;
+      // let qsObj = JSON.parse(
+      //   decodeURIComponent(qs.substring(qs.indexOf("=") + 1))
+      // );
 
-      if (tag === "dropbox") {
-        console.log("Dropbox oAuth identifier received");
-        this.updateLocalCredStore(DROPBOX_NAME, qsObj);
-      } else if (tag === "googledrive") {
-        console.log("Google drive oAuth identifier received");
-        this.updateLocalCredStore(GOOGLEDRIVE_NAME, qsObj);
-      } else if (tag === "gridftp") {
-        console.log("GridFTP oAuth identifier received");
-        this.updateLocalCredStore(GRIDFTP_NAME, qsObj);
-      } else if (tag === "box") {
-          console.log("Box oAuth identifier received");
-          this.updateLocalCredStore(BOX_NAME, qsObj);
-        }
+      // if (tag === "dropbox") {
+      //   console.log("Dropbox oAuth identifier received");
+      //   this.updateLocalCredStore(DROPBOX_NAME, qsObj);
+      // } else if (tag === "googledrive") {
+      //   console.log("Google drive oAuth identifier received");
+      //   this.updateLocalCredStore(GOOGLEDRIVE_NAME, qsObj);
+      // } else if (tag === "gridftp") {
+      //   console.log("GridFTP oAuth identifier received");
+      //   this.updateLocalCredStore(GRIDFTP_NAME, qsObj);
+      // } else if (tag === "box") {
+      //     console.log("Box oAuth identifier received");
+      //     this.updateLocalCredStore(BOX_NAME, qsObj);
+      //   }
       }
-    }
-
-  updateLocalCredStore(protocolType, qsObj) {
-    let creds = cookies.get(protocolType) || 0;
-    if (creds !== 0) {
-      let parsedJSON = JSON.parse(creds);
-      let accountId = qsObj.name.split(":+")[1];
-      let oAuthToken = qsObj.token;
-
-      let existingToken = parsedJSON.some(obj => obj.name === accountId);
-      if (existingToken) {
-        console.log(
-          "Auth token for " + accountId + " already exists in session."
-        );
-      } else {
-        parsedJSON.push({ name: accountId, token: oAuthToken, refreshToken: qsObj.refreshToken, expiredTime: qsObj.expiredTime });
-        cookies.set(protocolType, JSON.stringify(parsedJSON));
-      }
-    } else {
-      cookies.set(
-        protocolType,
-        JSON.stringify([
-          { name: qsObj.name.split(":+")[1], token: qsObj.token, refreshToken: qsObj.refreshToken, expiredTime: qsObj.expiredTime }
-        ])
-      );
-    }
   }
+
+  // updateLocalCredStore(protocolType, qsObj) {
+  //   let creds = cookies.get(protocolType) || 0;
+  //   if (creds !== 0) {
+  //     let parsedJSON = JSON.parse(creds);
+  //     let accountId = qsObj.name.split(":+")[1];
+  //     let oAuthToken = qsObj.token;
+
+  //     let existingToken = parsedJSON.some(obj => obj.name === accountId);
+  //     if (existingToken) {
+  //       console.log(
+  //         "Auth token for " + accountId + " already exists in session."
+  //       );
+  //     } else {
+  //       parsedJSON.push({ name: accountId, token: oAuthToken, refreshToken: qsObj.refreshToken, expiredTime: qsObj.expiredTime });
+  //       cookies.set(protocolType, JSON.stringify(parsedJSON));
+  //     }
+  //   } else {
+  //     cookies.set(
+  //       protocolType,
+  //       JSON.stringify([
+  //         { name: qsObj.name.split(":+")[1], token: qsObj.token, refreshToken: qsObj.refreshToken, expiredTime: qsObj.expiredTime }
+  //       ])
+  //     );
+  //   }
+  // }
 
 
   render() {

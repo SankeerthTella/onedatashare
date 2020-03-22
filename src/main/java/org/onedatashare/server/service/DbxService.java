@@ -103,7 +103,10 @@ public class DbxService extends OAuthResourceService{
     public Mono<String> completeOAuth(Map<String, String> queryParameters) {
         return Mono.fromSupplier(() -> dbxOauthService.finish(queryParameters))
             .map(oauthCred -> userService.saveCredential(oauthCred))
-            .map(uuid -> "/oauth/uuid?identifier=" + uuid)
+            .map(uuid -> {
+                System.out.println(uuid);
+                return "/oauth/uuid?identifier=" + uuid;
+            })
             .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));
     }
 }

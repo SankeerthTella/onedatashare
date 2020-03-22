@@ -12,7 +12,7 @@ public class GlobusWebClientCredential extends Credential {
     public GlobusClient _globusClient;
 
     public GlobusWebClientCredential(EndPoint endpoint, GlobusClient globusClient) {
-        this.type = EndpointType.GRIDFTP;
+        this.type = CredentialType.GLOBUS;
         this._endpoint = endpoint;
         _globusClient = globusClient;
     }
