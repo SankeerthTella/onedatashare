@@ -64,7 +64,6 @@ export const SFTP_TYPE = "sftp://";
 export const GRIDFTP_TYPE = "gsiftp://";
 export const HTTP_TYPE = "http://";
 export const HTTPS_TYPE = "https://";
-export const SCP_TYPE = "scp://";
 
 export const DROPBOX_NAME = "DropBox";
 export const GOOGLEDRIVE_NAME = "GoogleDrive";
@@ -73,7 +72,6 @@ export const FTP_NAME = "FTP";
 export const SFTP_NAME = "SFTP";
 export const HTTP_NAME = "HTTP";
 export const GRIDFTP_NAME = "GridFTP";
-export const SCP_NAME = "SCP";
 
 export const DROPBOX = "dropbox";
 export const GOOGLEDRIVE = "googledrive";
@@ -82,7 +80,7 @@ export const FTP = "ftp";
 export const SFTP = "sftp";
 export const HTTP = "http";
 export const GRIDFTP = "gsiftp";
-export const SCP = "scp";
+
 //side
 export const sideLeft = "left";
 export const sideRight = "right";
@@ -121,7 +119,6 @@ export const showText = {
 	sftp: SFTP_NAME,
 	http: HTTP_NAME,
 	gsiftp: GRIDFTP_NAME,
-	scp: SCP_NAME,
 	https: HTTP_NAME
 }
 
@@ -133,7 +130,6 @@ export const showType = {
 	sftp: SFTP_TYPE,
 	http: HTTP_TYPE,
 	gsiftp: GRIDFTP_TYPE,
-	scp: SCP_TYPE,
 	https: HTTP_TYPE
 }
 
@@ -144,7 +140,6 @@ export const defaultPort = {
 	sftp: 22,
 	http: 80,
 	gsiftp: -1,
-	scp: 22,
 	https: 443
 }
 
