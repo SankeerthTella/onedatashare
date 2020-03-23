@@ -104,10 +104,6 @@ public class GoogleDriveSession extends Session<GoogleDriveSession, GoogleDriveR
     }
 
     public com.google.api.client.auth.oauth2.Credential authorize(String token) throws IOException {
-        // Load client secrets.
-        if (driveConfig == null) {
-            driveConfig = new GoogleDriveConfig();
-        }
         com.google.api.client.auth.oauth2.Credential credential = driveConfig.getFlow().loadCredential(token);
         return credential;
     }
@@ -135,7 +131,7 @@ public class GoogleDriveSession extends Session<GoogleDriveSession, GoogleDriveR
             return null;
         }
         return new Drive.Builder(
-                driveConfig.getHttpTransport(), driveConfig.getJSON_FACTORY(), setHttpTimeout(credential))
+                GoogleDriveConfig.getHttpTransport(), GoogleDriveConfig.getJsonFactory(), setHttpTimeout(credential))
                 .setApplicationName("OneDataShare")
                 .build();
     }

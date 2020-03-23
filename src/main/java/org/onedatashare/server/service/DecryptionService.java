@@ -24,7 +24,8 @@ import javax.crypto.Cipher;
 @Service
 public class DecryptionService {
 
-    private String odsPrivateKey = System.getenv("ods_rsa_private_key");
+    @Value("${ODS_RSA_PRIVATE_KEY}")
+    private String odsPrivateKey;
 
     private PrivateKey privateKey;
 

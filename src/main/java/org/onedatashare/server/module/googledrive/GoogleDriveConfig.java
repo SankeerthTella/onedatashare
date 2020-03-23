@@ -8,45 +8,78 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.DriveScopes;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 @Component
 @Data
+@AllArgsConstructor
+@ConfigurationProperties(prefix = "gdrive")
 public class GoogleDriveConfig {
 
-    @Value("${drive.authUri}")
+    @Value("${gdrive.authUri}")
     private String authUri;
 
-    @Value("${drive.tokenUri}")
+    @Value("${gdrive.tokenUri}")
     private String tokenUri;
 
-    @Value("${drive.authProviderUri}")
+    @Value("${gdrive.authProviderUri}")
     private String authProviderX509CertUrl;
 
-    @Value("${drive.redirectUri}")
+    @Value("${gdrive.redirectUri}")
     private String redirectUri;
 
-    private String clientId, clientSecret, projectId;
+    @Value("${gdrive.clientId}")
+    private String clientId;
+
+    @Value("${gdrive.clientSecret}")
+    private String clientSecret;
+
+    @Value("${gdrive.projectId}")
+    private String projectId;
+
     private GoogleClientSecrets driveClientSecrets;
     private GoogleAuthorizationCodeFlow flow;
 
-    private final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE_READONLY);
-    private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE_READONLY);
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-    private final java.io.File DATA_STORE_DIR = new java.io.File(System.getProperty("user.home"), ".credentials/ods");
-    private FileDataStoreFactory dataStoreFactory;
-    private HttpTransport httpTransport;
+    private static FileDataStoreFactory dataStoreFactory;
+    private static HttpTransport HTTP_TRANSPORT;
 
-    public GoogleDriveConfig() {
-        clientId = System.getenv("ods_drive_client_id");
-        clientSecret = System.getenv("ods_drive_client_secret");
-        projectId = System.getenv("ods_drive_project_id");
+    static {
+        try{
+            File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".credentials/ods");
+            dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
+            HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static final HttpTransport getHttpTransport(){
+        return HTTP_TRANSPORT;
+    }
+
+    public static final JsonFactory getJsonFactory(){
+        return JSON_FACTORY;
+    }
+
+    public static final FileDataStoreFactory getDataStoreFactory(){
+        return dataStoreFactory;
+    }
+
+    @PostConstruct
+    public void initialize() {
 
         if (getClientId() != null || getClientSecret() != null || getTokenUri() != null || getRedirectUri() != null){
             GoogleClientSecrets.Details details = new GoogleClientSecrets.Details();
@@ -57,16 +90,10 @@ public class GoogleDriveConfig {
             driveClientSecrets = new GoogleClientSecrets().setInstalled(details);
         }
 
-        try {
-            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-            dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
 
         try {
             flow = new GoogleAuthorizationCodeFlow.Builder(
-                    httpTransport, JSON_FACTORY, driveClientSecrets, SCOPES)
+                    HTTP_TRANSPORT, JSON_FACTORY, driveClientSecrets, SCOPES)
                     .setDataStoreFactory(dataStoreFactory)
                     .build();
         }catch(IOException e){

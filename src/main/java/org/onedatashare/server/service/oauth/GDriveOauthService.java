@@ -31,10 +31,10 @@ public class GDriveOauthService implements OAuthService{
         try {
             // Build flow and trigger user authorization request.
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                            driveConfig.getHttpTransport(), driveConfig.getJSON_FACTORY(),
+                            GoogleDriveConfig.getHttpTransport(), GoogleDriveConfig.getJsonFactory(),
                             driveConfig.getDriveClientSecrets(), SCOPES)
                             .setAccessType("offline").setApprovalPrompt("force")
-                            .setDataStoreFactory(driveConfig.getDataStoreFactory())
+                            .setDataStoreFactory(GoogleDriveConfig.getDataStoreFactory())
                             .build();
 
             AuthorizationCodeRequestUrl authorizationUrl =
