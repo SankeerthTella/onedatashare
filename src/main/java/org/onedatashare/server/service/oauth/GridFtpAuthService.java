@@ -8,13 +8,13 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 @Service
-public class GridftpAuthService {
+public class GridFtpAuthService {
     private GlobusClient globusclient = new GlobusClient();
 
-    public String start() {
+    public Mono<String> start() {
         try {
             // Authorize the DbxWebAuth auth as well as redirect the user to the finishURI, done this way to appease OAuth 2.0
-            return globusclient.generateAuthURL().block();
+            return globusclient.generateAuthURL();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -6,7 +6,7 @@ import org.onedatashare.server.model.request.OperationRequestData;
 import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.service.GridftpService;
-import org.onedatashare.server.service.oauth.GridftpAuthService;
+import org.onedatashare.server.service.oauth.GridFtpAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -18,13 +18,13 @@ import reactor.core.scheduler.Schedulers;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/api/gridftp")
+@RequestMapping("/api/gsiftp/")
 public class GridFtpController extends OAuthEndpointBaseController{
     @Autowired
     private GridftpService gridftpService;
 
     @Autowired
-    private GridftpAuthService gridftpAuthService;
+    private GridFtpAuthService gridftpAuthService;
 
     @Override
     protected Mono<Stat> listOperation(RequestData requestData) {
@@ -56,7 +56,7 @@ public class GridFtpController extends OAuthEndpointBaseController{
 
     @Override
     protected Mono<Rendering> initiateOauthOperation() {
-        return null;//this.redirectTo(gridftpAuthService.start());
+        return gridftpAuthService.start().map(this::redirectTo);
     }
 
     @Override

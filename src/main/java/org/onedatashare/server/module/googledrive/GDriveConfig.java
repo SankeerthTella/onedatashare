@@ -22,8 +22,6 @@ import java.util.List;
 
 @Component
 @Data
-@AllArgsConstructor
-@ConfigurationProperties(prefix = "gdrive")
 public class GDriveConfig {
 
     @Value("${gdrive.authUri}")
