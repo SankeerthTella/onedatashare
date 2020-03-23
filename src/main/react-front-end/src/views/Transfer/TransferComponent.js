@@ -87,7 +87,6 @@ export default class TransferComponent extends Component {
     window.addEventListener("resize", this.updateDimensions);
     this.setState({ width: window.innerWidth, height: window.innerHeight });
     this.setState({ compact: store.getState().compactViewEnabled });
-
   }
 
   sendFile = (processed) => {

@@ -47,7 +47,7 @@ export default class OauthProcessComponent extends Component {
       console.log(
         "User has opted to save auth tokens at ODS servers. UUID received"
       );
-      let qs = this.props.location.search;
+      // let qs = this.props.location.search;
       // let identifier = decodeURIComponent(qs.substring(qs.indexOf("=") + 1));
       // endpointLogin(DROPBOX_TYPE, sideLeft, { uuid: identifier });
     } else {
@@ -102,8 +102,8 @@ export default class OauthProcessComponent extends Component {
   render() {
     return (
       <div>
-        <Redirect to={transferPageUrl}/>
         <h1>Wait a second, You will be redirected.</h1>
+        <Redirect to={transferPageUrl}/>
       </div>
     );
     }

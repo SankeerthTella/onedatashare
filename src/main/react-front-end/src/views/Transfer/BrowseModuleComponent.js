@@ -98,19 +98,21 @@ export default class BrowseModuleComponent extends Component {
 	credentialTypeExistsThenDo = (containsType, succeed, failed) => {
 		this.setLoading(true);
 
-		//TODO: change
-		//Credentials are always stored in the backend now
-		if(store.getState().saveOAuthTokens || true){ //Added true
+		//Forcing this option for testing TODO: remove
+		if(store.getState().saveOAuthTokens || true){
 			// If the user has opted to store tokens on ODS server,
 			// query backed for saved credentials
 			console.log("Checking backend for " + containsType + " credentials");
 
 			savedCredList((data) => {
+				console.debug(data);	
 				if(Object.keys(data).some(id => {
 					return data[id].name.toLowerCase().indexOf(containsType.toLowerCase()) !== -1
 				})){
+					console.debug("logging inside the endpoint");
 					succeed(data);
 				}else{
+					console.debug("Nope, no creds found so oepning oauth page");
 					failed();
 				}
 				this.setLoading(false);
@@ -120,22 +122,22 @@ export default class BrowseModuleComponent extends Component {
 				this.setLoading(false);
 			});
 		}
-		// else{
-		// 	// If the user has opted not to store tokens on ODS server,
-		// 	// query cookies for saved credentials
-		// 	console.log("Checking cookies for " + containsType + " credentials");
+		else{
+			// If the user has opted not to store tokens on ODS server,
+			// query cookies for saved credentials
+			console.log("Checking cookies for " + containsType + " credentials");
 
-		// 	let creds = cookies.get(containsType) || 0;
-		// 	if(creds !== 0){
-		// 		creds= JSON.parse(creds);
-		// 		succeed(creds);
-		// 		this.setLoading(false);
-		// 	}
-		// 	else{
-		// 		failed();
-		// 		this.setLoading(false);
-		// 	}
-		// }
+			let creds = cookies.get(containsType) || 0;
+			if(creds !== 0){
+				creds= JSON.parse(creds);
+				succeed(creds);
+				this.setLoading(false);
+			}
+			else{
+				failed();
+				this.setLoading(false);
+			}
+		}
 	}
 
 	render() {

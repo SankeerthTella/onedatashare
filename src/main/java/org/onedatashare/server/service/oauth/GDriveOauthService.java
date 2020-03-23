@@ -7,16 +7,13 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import org.onedatashare.server.model.core.Credential;
 import org.onedatashare.server.model.credential.OAuthCredential;
 import org.onedatashare.server.module.googledrive.GoogleDriveConfig;
 import org.onedatashare.server.module.googledrive.GoogleDriveSession;
 import org.onedatashare.server.service.ODSLoggerService;
-import org.onedatashare.server.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.Calendar;

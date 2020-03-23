@@ -6,7 +6,6 @@ import org.onedatashare.server.model.request.OperationRequestData;
 import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.service.GDriveService;
-import org.onedatashare.server.service.oauth.GDriveOauthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

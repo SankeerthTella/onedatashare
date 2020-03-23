@@ -99,6 +99,6 @@ public class GDriveService extends OAuthResourceService {
         return Mono.fromSupplier(() -> gDriveOauthService.finish(queryParameters))
                 .flatMap(oauthCred -> userService.saveCredential(oauthCred))
                 .map(uuid -> "/oauth/uuid?identifier=" + uuid)
-                .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));
+                .switchIfEmpty(Mono.just("/oauth/ExistingCredGoogleDrive"));
     }
 }

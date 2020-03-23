@@ -234,7 +234,9 @@ export default class EndpointAuthenticateComponent extends Component {
 		const {loginSuccess} = this.props;
 
 
-		if(store.getState().saveOAuthTokens){
+		//Forcing condition for testing TODO: remove
+	
+		if(store.getState().saveOAuthTokens || true){
 			// If the user has opted to store tokens on ODS server
 			// Note - Backend returns stored credentials as a nested JSON object
 			return Object.keys(credList).filter(id => {
@@ -249,6 +251,7 @@ export default class EndpointAuthenticateComponent extends Component {
 							credential: {uuid: v, name: credList[v].name, tokenSaved: true},
 							side: endpoint.side
 						}
+						console.debug("Endpoint is " , endpointSet);
 						loginSuccess(endpointSet);
 					}}>
 					<ListItemIcon>

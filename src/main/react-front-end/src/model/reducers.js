@@ -12,7 +12,6 @@ queue
 import { LOGIN, LOGOUT, PROMOTE, ENDPOINT_PROGRESS, ENDPOINT_UPDATE, ACCOUNT_PREFERENCE_TOGGLED, COMPACT_VIEW_PREFERENCE } from './actions';
 import { transferOptimizations } from "./actions";
 import { DROPBOX_NAME, GOOGLEDRIVE_NAME } from '../constants';
-import { maxCookieAge } from '../constants';
 import Cookies from 'universal-cookie';
 export const cookies = new Cookies();
 
@@ -55,6 +54,8 @@ const initialState = {
 
 
 export function onedatashareModel(state = initialState, action) {
+  console.debug("REDUX ACTION", action, action.type, action.side, action.endpoint);
+  
   // For now, don't handle any actions
   // and just return the state given to us.
   switch (action.type) {
@@ -62,12 +63,12 @@ export function onedatashareModel(state = initialState, action) {
    		const {email, token, saveOAuthTokens, compactViewEnabled, admin, expiresIn} = action.credential;
       console.debug(`logging in  ${email}. Access token is valid for ${expiresIn} seconds`);
       cookies.set('email', email, { maxAge : expiresIn });
-      cookies.set('saveOAuthTokens', saveOAuthTokens, { maxAge : expiresIn, sameSite : "strict" });
-      cookies.set('compactViewEnabled', compactViewEnabled, { maxAge : expiresIn, sameSite : "strict" });
+      cookies.set('saveOAuthTokens', saveOAuthTokens, { maxAge : expiresIn });
+      cookies.set('compactViewEnabled', compactViewEnabled, { maxAge : expiresIn });
 
       //Only set the admin cookie if admin
       if(admin){
-        cookies.set('admin', admin, { maxAge : expiresIn, sameSite : "strict" });
+        cookies.set('admin', admin, { maxAge : expiresIn });
       }
       
     	return Object.assign({}, state, {
@@ -80,7 +81,7 @@ export function onedatashareModel(state = initialState, action) {
       });
 
     case LOGOUT:
-      console.log("logging out");
+      console.debug("logging out");
       cookies.remove('email');
       cookies.remove('admin');
       cookies.remove('endpoint1');
@@ -116,28 +117,29 @@ export function onedatashareModel(state = initialState, action) {
 
     case ENDPOINT_UPDATE:
       if(action.side === "left"){
-        cookies.set('endpoint1', JSON.stringify({...state.endpoint1, ...action.endpoint}, { maxAge : maxCookieAge, sameSite : "strict" }));
+        cookies.set('endpoint1', JSON.stringify({...state.endpoint1, ...action.endpoint}));
           return Object.assign({}, state, {
             endpoint1: {...state.endpoint1, ...action.endpoint},
           });
         }
       else{
-        cookies.set('endpoint2', JSON.stringify({...state.endpoint2, ...action.endpoint}), { maxAge : maxCookieAge, sameSite : "strict" });
+        cookies.set('endpoint2', JSON.stringify({...state.endpoint2, ...action.endpoint}));
         return Object.assign({}, state, {
           endpoint2: {...state.endpoint2, ...action.endpoint},
         });
       }
 
-      case COMPACT_VIEW_PREFERENCE:
-			cookies.set('compactViewEnabled', action.compactViewEnabled, {maxAge : maxCookieAge, sameSite : "strict"});
-			return Object.assign({}, state, {
-								compactViewEnabled: action.compactViewEnabled
-							});
+    case COMPACT_VIEW_PREFERENCE:
+      cookies.set('compactViewEnabled', action.compactViewEnabled );
+      return Object.assign({}, state, {
+                compactViewEnabled: action.compactViewEnabled
+              });
+
     case ACCOUNT_PREFERENCE_TOGGLED:
-      cookies.set('saveOAuthTokens', action.saveOAuthTokens, {maxAge : maxCookieAge});
+      cookies.set('saveOAuthTokens', action.saveOAuthTokens );
       // logout From the endpoints
-      cookies.set('endpoint1', JSON.stringify({ ...state.endpoint1, login : false }), {maxAge : maxCookieAge, sameSite : "strict"});
-      cookies.set('endpoint2', JSON.stringify({ ...state.endpoint2, login : false }), {maxAge : maxCookieAge, sameSite : "strict"});
+      cookies.set('endpoint1', JSON.stringify({ ...state.endpoint1, login : false }) );
+      cookies.set('endpoint2', JSON.stringify({ ...state.endpoint2, login : false }) );
       return Object.assign({}, state, {
         saveOAuthTokens: action.saveOAuthTokens,
         endpoint1 : { ...state.endpoint1, login : false },

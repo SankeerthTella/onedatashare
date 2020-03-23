@@ -27,6 +27,7 @@ export const axios = Axios.create({
 
 
 export function handleRequestFailure(error, failureCallback){
+	console.debug(`Error is` , error);
 	const responseCode = error.response.status;
 	console.debug(`In status handle error code is ${responseCode}`);
 	if(responseCode.code === 401 && store.getState.login === true){
