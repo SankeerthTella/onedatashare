@@ -8,7 +8,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import org.onedatashare.server.model.credential.OAuthCredential;
-import org.onedatashare.server.module.googledrive.GoogleDriveConfig;
+import org.onedatashare.server.module.googledrive.GDriveConfig;
 import org.onedatashare.server.module.googledrive.GoogleDriveSession;
 import org.onedatashare.server.service.ODSLoggerService;
 
@@ -23,7 +23,7 @@ import java.util.Map;
 @Service
 public class GDriveOauthService implements OAuthService{
     @Autowired
-    private GoogleDriveConfig driveConfig;
+    private GDriveConfig driveConfig;
 
     private final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE_METADATA_READONLY, DriveScopes.DRIVE);
 
@@ -31,10 +31,10 @@ public class GDriveOauthService implements OAuthService{
         try {
             // Build flow and trigger user authorization request.
             GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                            GoogleDriveConfig.getHttpTransport(), GoogleDriveConfig.getJsonFactory(),
+                            GDriveConfig.getHttpTransport(), GDriveConfig.getJsonFactory(),
                             driveConfig.getDriveClientSecrets(), SCOPES)
                             .setAccessType("offline").setApprovalPrompt("force")
-                            .setDataStoreFactory(GoogleDriveConfig.getDataStoreFactory())
+                            .setDataStoreFactory(GDriveConfig.getDataStoreFactory())
                             .build();
 
             AuthorizationCodeRequestUrl authorizationUrl =

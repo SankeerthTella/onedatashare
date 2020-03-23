@@ -18,7 +18,6 @@ import org.onedatashare.server.model.error.TokenExpiredException;
 import org.onedatashare.server.model.useraction.IdMap;
 import org.onedatashare.server.service.ODSLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -30,7 +29,7 @@ import java.util.*;
 public class GoogleDriveSession extends Session<GoogleDriveSession, GoogleDriveResource> {
 
     @Autowired
-    GoogleDriveConfig driveConfig;
+    GDriveConfig driveConfig;
 
     private Drive service;
     private transient HashMap<String, String> pathToParentIdMap = new HashMap<>();
@@ -131,7 +130,7 @@ public class GoogleDriveSession extends Session<GoogleDriveSession, GoogleDriveR
             return null;
         }
         return new Drive.Builder(
-                GoogleDriveConfig.getHttpTransport(), GoogleDriveConfig.getJsonFactory(), setHttpTimeout(credential))
+                GDriveConfig.getHttpTransport(), GDriveConfig.getJsonFactory(), setHttpTimeout(credential))
                 .setApplicationName("OneDataShare")
                 .build();
     }
