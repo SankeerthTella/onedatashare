@@ -333,7 +333,7 @@ public class UserService {
      */
     public Mono<User> getLoggedInUser() {
         return getLoggedInUserEmail()
-                .flatMap(this::getUser)
+                .flatMap(this::getUser);
     }
 
 
