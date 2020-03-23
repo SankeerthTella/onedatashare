@@ -26,14 +26,14 @@ const initialState = {
 	email: cookies.get('email'),
 	compactViewEnabled: cookies.get('compactViewEnabled') === 'true' || false,
   saveOAuthTokens: cookies.get('saveOAuthTokens') === 'true' || false,
-	endpoint1: cookies.get('endpoint1') ? JSON.parse(cookies.get('endpoint1')) : {
+	endpoint1: cookies.get('endpoint1') ? cookies.get('endpoint1') : {
 		login: false,
 		credential: {},
 		uri: "",
     side: "left"
 	},
 
-	endpoint2: cookies.get('endpoint2') ? JSON.parse(cookies.get('endpoint2')) : {
+	endpoint2: cookies.get('endpoint2') ? cookies.get('endpoint2') : {
     login: false,
 		credential: {},
 		uri: "",
@@ -117,13 +117,13 @@ export function onedatashareModel(state = initialState, action) {
 
     case ENDPOINT_UPDATE:
       if(action.side === "left"){
-        cookies.set('endpoint1', JSON.stringify({...state.endpoint1, ...action.endpoint}));
+        cookies.set('endpoint1', {...state.endpoint1, ...action.endpoint});
           return Object.assign({}, state, {
             endpoint1: {...state.endpoint1, ...action.endpoint},
           });
         }
       else{
-        cookies.set('endpoint2', JSON.stringify({...state.endpoint2, ...action.endpoint}));
+        cookies.set('endpoint2', {...state.endpoint2, ...action.endpoint});
         return Object.assign({}, state, {
           endpoint2: {...state.endpoint2, ...action.endpoint},
         });
@@ -138,8 +138,8 @@ export function onedatashareModel(state = initialState, action) {
     case ACCOUNT_PREFERENCE_TOGGLED:
       cookies.set('saveOAuthTokens', action.saveOAuthTokens );
       // logout From the endpoints
-      cookies.set('endpoint1', JSON.stringify({ ...state.endpoint1, login : false }) );
-      cookies.set('endpoint2', JSON.stringify({ ...state.endpoint2, login : false }) );
+      cookies.set('endpoint1', { ...state.endpoint1, login : false } );
+      cookies.set('endpoint2', { ...state.endpoint2, login : false } );
       return Object.assign({}, state, {
         saveOAuthTokens: action.saveOAuthTokens,
         endpoint1 : { ...state.endpoint1, login : false },
