@@ -34,7 +34,7 @@ public class GDriveOauthService implements OAuthService{
                             GDriveConfig.getHttpTransport(), GDriveConfig.getJsonFactory(),
                             driveConfig.getDriveClientSecrets(), SCOPES)
                             .setAccessType("offline").setApprovalPrompt("force")
-                            .setDataStoreFactory(GDriveConfig.getDataStoreFactory())
+                            .setDataStoreFactory(GDriveConfig.getDATA_STORE_FACTORY())
                             .build();
 
             AuthorizationCodeRequestUrl authorizationUrl =

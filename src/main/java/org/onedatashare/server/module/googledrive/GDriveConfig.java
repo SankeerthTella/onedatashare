@@ -53,13 +53,13 @@ public class GDriveConfig {
     private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE_READONLY);
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-    private static FileDataStoreFactory dataStoreFactory;
+    private static FileDataStoreFactory DATA_STORE_FACTORY;
     private static HttpTransport HTTP_TRANSPORT;
 
     static {
         try{
             File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".credentials/ods");
-            dataStoreFactory = new FileDataStoreFactory(DATA_STORE_DIR);
+            DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         } catch (Exception e){
             e.printStackTrace();
@@ -74,8 +74,8 @@ public class GDriveConfig {
         return JSON_FACTORY;
     }
 
-    public static final FileDataStoreFactory getDataStoreFactory(){
-        return dataStoreFactory;
+    public static final FileDataStoreFactory getDATA_STORE_FACTORY(){
+        return DATA_STORE_FACTORY;
     }
 
     @PostConstruct
@@ -94,7 +94,7 @@ public class GDriveConfig {
         try {
             flow = new GoogleAuthorizationCodeFlow.Builder(
                     HTTP_TRANSPORT, JSON_FACTORY, driveClientSecrets, SCOPES)
-                    .setDataStoreFactory(dataStoreFactory)
+                    .setDataStoreFactory(DATA_STORE_FACTORY)
                     .build();
         }catch(IOException e){
             e.printStackTrace();
