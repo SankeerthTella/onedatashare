@@ -333,9 +333,7 @@ public class UserService {
      */
     public Mono<User> getLoggedInUser() {
         return getLoggedInUserEmail()
-                .doOnSuccess(x -> ODSLoggerService.logInfo(x))
-                    .flatMap(this::getUser)
-                .doOnSuccess(u -> ODSLoggerService.logInfo(u.toString()));
+                .flatMap(this::getUser)
     }
 
 

@@ -35,9 +35,9 @@ public class LoginController {
                             .maxAge(Duration.ofSeconds(loginResponse.getExpiresIn()))
                             .build().toString();
                     HttpHeaders responseHeaders = new HttpHeaders();
-//;SameSite=Strict;
+                    //;SameSite=Strict;
                     responseHeaders.set(HttpHeaders.SET_COOKIE,
-                            cookieString+ "Max-Age=" + loginResponse.getExpiresIn());
+                            cookieString+ "; Max-Age=" + loginResponse.getExpiresIn());
                     //Remove the token from the response
                     loginResponse.setToken(null);
                     return ResponseEntity.ok().headers(responseHeaders).body(loginResponse);
