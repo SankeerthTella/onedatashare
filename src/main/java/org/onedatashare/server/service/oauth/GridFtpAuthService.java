@@ -1,17 +1,40 @@
 package org.onedatashare.server.service.oauth;
 
+import lombok.Getter;
 import org.onedatashare.module.globusapi.GlobusClient;
 import org.onedatashare.server.model.credential.OAuthCredential;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
+
+@ConfigurationProperties(prefix = "gsiftp")
+@Getter
+class GridFTPConfig{
+    private String clientId;
+    private String clientSecret;
+    private String redirectUri;
+}
 
 @Service
 public class GridFtpAuthService {
     private GlobusClient globusclient = new GlobusClient();
 
-    public Mono<String> start() {
+    @Autowired
+    private GridFTPConfig gridFTPConfig = new GridFTPConfig();
+
+
+    @PostConstruct
+    public void initializeGlobusClient(){
+        globusclient.setRedirectUri(gridFTPConfig.getRedirectUri())
+                .setClientId(gridFTPConfig.getClientId())
+                .setClientSecret(gridFTPConfig.getClientSecret());
+    }
+
+    public String start() {
         try {
             // Authorize the DbxWebAuth auth as well as redirect the user to the finishURI, done this way to appease OAuth 2.0
             return globusclient.generateAuthURL();
