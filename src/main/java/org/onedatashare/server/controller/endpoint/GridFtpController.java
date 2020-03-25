@@ -6,6 +6,7 @@ import org.onedatashare.server.model.request.OperationRequestData;
 import org.onedatashare.server.model.request.RequestData;
 import org.onedatashare.server.model.useraction.UserAction;
 import org.onedatashare.server.service.GridftpService;
+import org.onedatashare.server.service.UserService;
 import org.onedatashare.server.service.oauth.GridFtpAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +23,6 @@ import java.util.Map;
 public class GridFtpController extends OAuthEndpointBaseController{
     @Autowired
     private GridftpService gridftpService;
-
-    @Autowired
-    private GridFtpAuthService gridftpAuthService;
 
     @Override
     protected Mono<Stat> listOperation(RequestData requestData) {
@@ -56,12 +54,12 @@ public class GridFtpController extends OAuthEndpointBaseController{
 
     @Override
     protected Mono<Rendering> initiateOauthOperation() {
-        return Mono.fromSupplier(() -> gridftpAuthService.start())
+        return gridftpService.getOAuthUrl()
                 .map(this::redirectTo);
     }
 
     @Override
     protected Mono<Rendering> completeOauthOperation(Map<String, String> queryParameters) {
-        return null;
+        return gridftpService.completeOAuth(queryParameters).map(this::redirectTo);
     }
 }

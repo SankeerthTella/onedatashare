@@ -1,30 +1,29 @@
 
 package org.onedatashare.server.service;
 
-import org.onedatashare.module.globusapi.Result;
 import org.onedatashare.server.model.core.ODSConstants;
 import org.onedatashare.server.model.core.Stat;
 import org.onedatashare.server.model.credential.GlobusWebClientCredential;
-import org.onedatashare.server.model.credential.UserInfoCredential;
 import org.onedatashare.server.model.useraction.UserAction;
-import org.onedatashare.server.model.useraction.UserActionResource;
-import org.onedatashare.server.module.dropbox.DbxResource;
 import org.onedatashare.server.module.gridftp.GridftpResource;
 import org.onedatashare.server.module.gridftp.GridftpSession;
-import org.onedatashare.server.module.vfs.VfsResource;
-import org.onedatashare.server.module.vfs.VfsSession;
+import org.onedatashare.server.service.oauth.GridFtpAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Map;
 
 @Service
-public class GridftpService {
+public class GridftpService extends OAuthResourceService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private GridFtpAuthService gridFtpAuthService;
 
     public Mono<Stat> list(String cookie, UserAction userAction) {
         return getResourceWithUserUserAction(cookie, userAction).flatMap(GridftpResource::stat);
@@ -39,15 +38,22 @@ public class GridftpService {
             .flatMap(GridftpSession -> GridftpSession.select(path));
     }
 
-    public Mono<Result> delete(String cookie, UserAction userAction) {
+    public Mono<Boolean> delete(String cookie, UserAction userAction) {
         return getResourceWithUserUserAction(cookie, userAction)
-                .flatMap(GridftpResource::deleteV2);
+                .flatMap(GridftpResource::deleteV2)
+                .map(x -> true);
     }
 
-    public Mono<Stat> mkdir(String cookie, UserAction userAction) {
+    @Override
+    public Mono<String> download(String cookie, UserAction userAction) {
+        return null;
+    }
+
+    public Mono<Boolean> mkdir(String cookie, UserAction userAction) {
         return getResourceWithUserUserAction(cookie, userAction)
                 .flatMap(GridftpResource::mkdir)
-                .flatMap(GridftpResource::stat);
+                .flatMap(GridftpResource::stat)
+                .map(x -> true);
     }
 
     public static String pathFromUri(String uri) {
@@ -62,5 +68,18 @@ public class GridftpService {
             e.printStackTrace();
         }
         return path;
+    }
+
+    @Override
+    public Mono<String> getOAuthUrl() {
+        return Mono.fromSupplier(() -> gridFtpAuthService.start());
+    }
+
+    @Override
+    public Mono<String> completeOAuth(Map<String, String> queryParameters) {
+        return gridFtpAuthService.finish(queryParameters)
+                .flatMap(oauthCred -> userService.saveCredential(oauthCred))
+                .map(uuid -> "/oauth/uuid?identifier=" + uuid)
+                .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));
     }
 }
