@@ -27,7 +27,8 @@ export default class SearchComponent extends Component {
         super(props);
         this.state = {
             username: '',
-            jobid: '',
+            startJobId: 50,
+            endJobId: 52,
             progress: '',
             searchBtnEnable: 'false' //make it '' to enable
         };
@@ -40,10 +41,11 @@ export default class SearchComponent extends Component {
 
     handleSearch() {
         //console.log('Search called');
-        const { username, jobid, progress } = this.state
+        const { username, startJobId, endJobId, progress } = this.state
 		getSearchJobs(
             username, 
-            jobid, 
+            startJobId, 
+            endJobId,
             progress,
             this.props.page,
             this.props.rowsPerPage,
@@ -60,7 +62,7 @@ export default class SearchComponent extends Component {
         if(event.target.value === '' && this.state.jobid === '' && this.state.progress === '')
             searchBtn = 'false';
         this.setState({
-            username: '^hir',//event.target.value,
+            username: '^'+ event.target.value,
             searchBtnEnable: searchBtn
         });
     }
@@ -82,7 +84,7 @@ export default class SearchComponent extends Component {
         if(event.target.value === '' && this.state.username === '' && this.state.jobid === '')
             searchBtn = 'false';
         this.setState({
-            progress: event.target.value,
+            progress: '^'+event.target.value,
             searchBtnEnable: searchBtn
         });
     }

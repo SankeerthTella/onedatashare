@@ -30,10 +30,12 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchRequest {
     public String status;
-    public String jobId;
+    public int startJobId;
+    public int endJobId;
     public int pageNo;
     public int pageSize;
     public String sortOrder;
     public String sortBy;
     public String username;
+    public String progress;
 }

@@ -405,12 +405,13 @@ export async function getJobsForAdmin(owner, pageNo, pageSize, sortBy, order, ac
 	});
 }
 
-export async function getSearchJobs(username, jobid, progress, pageNo, pageSize, sortBy, order, accept, fail) {
+export async function getSearchJobs(username, startJobId, endJobId, progress, pageNo, pageSize, sortBy, order, accept, fail) {
 	let callback = accept;
 	axios.post(url+GET_SEARCH_JOBS_ENDPOINT, {
 		status: 'all',
 		username: username,
-		jobid: jobid,
+		startJobId: startJobId,
+		endJobId: endJobId,
 		progress: progress,
 		pageNo: pageNo,
 		pageSize: pageSize,

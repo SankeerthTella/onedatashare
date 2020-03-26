@@ -93,8 +93,8 @@ public class JobService {
     public Mono<JobDetails> getSearchJobs(SearchRequest request) {
         Pageable pageable = this.generatePageFromRequest(request);
         return userService.getLoggedInUserEmail().flatMap(userEmail -> {
-            Mono<List<Job>> jobList = jobRepository.findSearchJobs(request.getUsername(), pageable).collectList();
-            Mono<Long> jobCount = jobRepository.getSearchJobsCount(request.getUsername());
+            Mono<List<Job>> jobList = jobRepository.findSearchJobs(request.getUsername(), request.progress, request.startJobId, request.endJobId, pageable).collectList();
+            Mono<Long> jobCount = jobRepository.getSearchJobsCount(request.getUsername(), request.progress, request.startJobId, request.endJobId);
             return jobList.zipWith(jobCount, JobDetails::new);
         });
     }
