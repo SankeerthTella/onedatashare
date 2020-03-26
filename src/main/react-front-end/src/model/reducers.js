@@ -54,8 +54,6 @@ const initialState = {
 
 
 export function onedatashareModel(state = initialState, action) {
-  console.debug("REDUX ACTION", action, action.type, action.side, action.endpoint);
-  
   // For now, don't handle any actions
   // and just return the state given to us.
   switch (action.type) {

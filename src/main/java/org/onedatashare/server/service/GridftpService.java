@@ -1,6 +1,7 @@
 
 package org.onedatashare.server.service;
 
+import org.onedatashare.server.model.core.Credential;
 import org.onedatashare.server.model.core.ODSConstants;
 import org.onedatashare.server.model.core.Stat;
 import org.onedatashare.server.model.credential.GlobusWebClientCredential;
@@ -78,7 +79,10 @@ public class GridftpService extends OAuthResourceService {
     @Override
     public Mono<String> completeOAuth(Map<String, String> queryParameters) {
         return gridFtpAuthService.finish(queryParameters)
-                .flatMap(oauthCred -> userService.saveCredential(oauthCred))
+                .flatMap(oauthCred -> {
+                    oauthCred.setType(Credential.CredentialType.GLOBUS);
+                    return userService.saveCredential(oauthCred);
+                })
                 .map(uuid -> "/oauth/uuid?identifier=" + uuid)
                 .switchIfEmpty(Mono.just("/oauth/ExistingCredDropbox"));
     }
